@@ -11,6 +11,23 @@ When asked to "run the app", "start the application", or similar:
 2. The correct way to run is: `./test.sh` (it handles Docker automatically)
 3. Or manually: `docker build -t claude-code-sdk .` then `docker run -d -p 8080:8080 --env-file .env claude-code-sdk`
 
+## HOW TO QUERY THE API ENDPOINT
+
+When calling the containerized Claude SDK API, use this exact format to avoid curl issues:
+
+```bash
+# Get the API key from the .env file first:
+API_KEY=$(grep CLAUDE_CODE_SDK_CONTAINER_API_KEY .env | cut -d '=' -f2)
+
+# CORRECT - Single line without backslashes:
+curl -X POST http://localhost:8080/query -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" -d '{"prompt": "Your question here"}'
+
+# To extract just the response text:
+curl -X POST http://localhost:8080/query -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" -d '{"prompt": "Your question here"}' -s | jq -r '.response'
+```
+
+**DO NOT use multi-line curl commands with backslashes** - they cause issues with the Bash tool.
+
 ## Quick Start
 
 Please read the [README.md](./README.md) for complete setup instructions and usage examples.

@@ -24,8 +24,10 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Load env vars (for testing purposes)
-export $(cat .env | grep -v '^#' | xargs)
+# Load env vars safely
+set -a
+source .env
+set +a
 
 # Check if tokens are set
 if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
@@ -42,21 +44,26 @@ echo ""
 
 # First check if Docker is running
 if ! docker info > /dev/null 2>&1; then
-    echo -e "${YELLOW}⚠️  Docker is not running. Attempting to start Docker Desktop...${NC}"
-    open -a Docker 2>/dev/null || echo -e "${RED}Please start Docker Desktop manually${NC}"
+    echo -e "${YELLOW}⚠️  Docker is not running.${NC}"
 
-    # Wait for Docker to start
-    echo "Waiting for Docker to start (up to 30 seconds)..."
-    for i in {1..30}; do
-        if docker info > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ Docker started successfully${NC}"
-            break
-        fi
-        sleep 1
-    done
+    # Try to start Docker Desktop on macOS
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "Attempting to start Docker Desktop..."
+        open -a Docker 2>/dev/null || echo -e "${YELLOW}Could not auto-start Docker Desktop${NC}"
+
+        # Wait for Docker to start
+        echo "Waiting for Docker to start (up to 30 seconds)..."
+        for i in {1..30}; do
+            if docker info > /dev/null 2>&1; then
+                echo -e "${GREEN}✅ Docker started successfully${NC}"
+                break
+            fi
+            sleep 1
+        done
+    fi
 
     if ! docker info > /dev/null 2>&1; then
-        echo -e "${RED}❌ Docker failed to start. Please start Docker Desktop manually.${NC}"
+        echo -e "${RED}❌ Docker is not running. Please start Docker manually.${NC}"
         exit 1
     fi
 fi
@@ -164,7 +171,7 @@ echo ""
 if [ -n "$CLAUDE_CODE_SDK_CONTAINER_API_KEY" ]; then
     echo "curl -X POST http://localhost:8080/query \\"
     echo "  -H \"Content-Type: application/json\" \\"
-    echo "  -H \"X-API-Key: $CLAUDE_CODE_SDK_CONTAINER_API_KEY\" \\"
+    echo "  -H \"X-API-Key: YOUR_API_KEY_HERE\" \\"
     echo "  -d '{\"prompt\": \"How far is it from Sydney to London?\"}'"
 else
     echo "curl -X POST http://localhost:8080/query \\"

@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.mjs",
   "scripts": {
-    "start": "echo '❌ Please run this app in Docker. Use: ./test.sh' && exit 1",
+    "start": "node index.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",

@@ -4,24 +4,44 @@ import path from "path";
 import os from "os";
 import { query } from "@anthropic-ai/claude-code";
 
+// Constants
+const DEFAULT_PORT = 8080;
+const DEFAULT_MODEL = "claude-sonnet-4-0";
+const MAX_PROMPT_LENGTH = 100000; // Reasonable limit
+
+// Allowed models - add new models here as they become available
+const ALLOWED_MODELS = [
+  "claude-sonnet-4-0",
+  "claude-opus-4-1"
+];
+
+// Just use console directly - no wrapper needed
+
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '1mb' })); // Prevent huge payloads
 
 // Simple auth middleware - only for protected endpoints
 const requireAuth = (req, res, next) => {
-  const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
+  const configuredKey = process.env.CLAUDE_CODE_SDK_CONTAINER_API_KEY;
 
-  if (!process.env.CLAUDE_CODE_SDK_CONTAINER_API_KEY || apiKey === process.env.CLAUDE_CODE_SDK_CONTAINER_API_KEY) {
-    next();
-  } else {
-    res.status(401).json({ error: 'Unauthorized - Invalid or missing API key' });
+  // No key configured = public access
+  if (!configuredKey) {
+    return next();
   }
+
+  // Check provided key
+  const apiKey = req.headers['x-api-key'] || req.headers['authorization']?.replace('Bearer ', '');
+  if (apiKey === configuredKey) {
+    return next();
+  }
+
+  res.status(401).json({ error: 'Unauthorized - Invalid or missing API key' });
 };
 
 // Check if running in Docker
 const isDocker = fs.existsSync('/.dockerenv') ||
-                  fs.existsSync('/run/.containerenv') ||
-                  (process.env.container === 'docker');
+                 fs.existsSync('/run/.containerenv') ||
+                 process.env.container === 'docker';
 
 if (!isDocker && process.env.ALLOW_LOCAL !== 'true') {
   console.error("\n❌ ERROR: This application must be run in Docker!");
@@ -41,26 +61,15 @@ console.log("Node version:", process.version);
 console.log("Environment:", isDocker ? "Docker Container ✅" : "Local (bypass mode) ⚠️");
 console.log("HOME:", os.homedir());
 console.log("Claude token present:", !!process.env.CLAUDE_CODE_OAUTH_TOKEN);
-console.log("Claude token length:", process.env.CLAUDE_CODE_OAUTH_TOKEN?.length || 0);
 console.log("API key configured:", !!process.env.CLAUDE_CODE_SDK_CONTAINER_API_KEY);
 console.log("API protection:", process.env.CLAUDE_CODE_SDK_CONTAINER_API_KEY ? "ENABLED" : "DISABLED (public access)");
 
-// Check for credential files
+// Check for credential files (without exposing sensitive data)
 const credPath = path.join(os.homedir(), ".claude", ".credentials.json");
 const configPath = path.join(os.homedir(), ".claude.json");
-console.log("Credentials file exists:", fs.existsSync(credPath));
-console.log("Config file exists:", fs.existsSync(configPath));
+console.log("Credentials configured:", fs.existsSync(credPath) && fs.existsSync(configPath));
 
-if (fs.existsSync(credPath)) {
-  try {
-    const creds = JSON.parse(fs.readFileSync(credPath, "utf8"));
-    console.log("Credentials structure valid:", !!creds.claudeAiOauth);
-  } catch (e) {
-    console.error("Error reading credentials:", e.message);
-  }
-}
-
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || DEFAULT_PORT;
 
 // Health check endpoint
 app.get("/", (req, res) => {
@@ -85,48 +94,66 @@ app.post("/query", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Prompt is required" });
     }
 
+    if (typeof prompt !== 'string') {
+      return res.status(400).json({ error: "Prompt must be a string" });
+    }
+
+    if (prompt.length > MAX_PROMPT_LENGTH) {
+      return res.status(400).json({
+        error: `Prompt too long. Maximum length is ${MAX_PROMPT_LENGTH} characters`
+      });
+    }
+
     if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
       return res
         .status(401)
         .json({ error: "CLAUDE_CODE_OAUTH_TOKEN not configured" });
     }
 
+    // Validate model if provided
+    let selectedModel = DEFAULT_MODEL;
+    if (options.model) {
+      if (!ALLOWED_MODELS.includes(options.model)) {
+        return res.status(400).json({
+          error: `Invalid model. Allowed models: ${ALLOWED_MODELS.join(', ')}`
+        });
+      }
+      selectedModel = options.model;
+    }
+
     const messages = [];
     let responseText = "";
 
-    try {
-      // Use the Claude Code SDK
-      const response = query({
-        prompt: prompt,
-        options: {
-          model: options.model || "claude-sonnet-4-0",
-          ...options,
-        },
-      });
+    // Build safe options - only allow explicitly safe parameters
+    const safeOptions = {
+      model: selectedModel,
+      // Only add other options here after security review
+      // Do NOT use spread operator with user input
+    };
 
-      for await (const message of response) {
-        messages.push(message);
+    // Use the Claude Code SDK
+    const response = query({
+      prompt: prompt,
+      options: safeOptions,
+    });
 
-        // Extract text from assistant messages
-        if (message.type === "assistant" && message.message?.content) {
-          for (const block of message.message.content) {
-            if (block.type === "text") {
-              responseText += block.text;
-            }
+    for await (const message of response) {
+      messages.push(message);
+
+      // Extract text from assistant messages
+      if (message.type === "assistant" && message.message?.content) {
+        for (const block of message.message.content) {
+          if (block.type === "text") {
+            responseText += block.text;
           }
         }
       }
-
-      res.json({
-        success: true,
-        response: responseText,
-        messageCount: messages.length,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (innerError) {
-      console.error("Query execution error:", innerError);
-      throw innerError;
     }
+
+    res.json({
+      success: true,
+      response: responseText
+    });
   } catch (error) {
     console.error("Query error:", error.message);
     res.status(500).json({

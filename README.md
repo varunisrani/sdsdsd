@@ -1,5 +1,9 @@
 # Claude Code SDK Container
 
+**Deploy Claude Code to your favorite cloud provider and use it just like Claude Code on your desktop!**
+
+This repository containerizes Claude Code, allowing you to run it with your Anthropic subscription on AWS, Google Cloud, Azure, or any cloud platform that supports Docker. Once deployed, you can interact with Claude Code through a REST API from any application or service!
+
 Since you're here, we expect you already have Claude Code installed and are loving it as much as we are. But if you haven't installed it yet, you can get started here: [Claude Code Installation Guide](https://docs.claude.com/en/docs/claude-code/overview)
 
 > 🔒 **Security Note**: This container exposes Claude AI with tools through an HTTP API. Like any AI integration, be mindful of prompt injection when handling untrusted input. Learn more about this important topic from [Simon Willison's articles on prompt injection](https://simonwillison.net/tags/prompt-injection/).

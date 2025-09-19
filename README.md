@@ -1,5 +1,7 @@
 # Claude Code SDK Container
 
+> 🔒 **Security Note**: This container exposes Claude AI with tools through an HTTP API. Like any AI integration, be mindful of prompt injection when handling untrusted input. Learn more about this important topic from [Simon Willison's articles on prompt injection](https://simonwillison.net/tags/prompt-injection/).
+
 **🚨 STOP! Only THREE manual steps required:**
 
 ## 📋 Three-Step Setup (DO THIS YOURSELF)

@@ -2,18 +2,15 @@
 
 > 🔒 **Security Note**: This container exposes Claude AI with tools through an HTTP API. Like any AI integration, be mindful of prompt injection when handling untrusted input. Learn more about this important topic from [Simon Willison's articles on prompt injection](https://simonwillison.net/tags/prompt-injection/).
 
-**🚨 STOP! Only THREE manual steps required:**
+**🚨 STOP! Only FOUR manual steps required:**
 
-## 📋 Three-Step Setup (DO THIS YOURSELF)
+## 📋 Four-Step Setup (DO THIS YOURSELF)
 
-### Step 1: Clone This Repo & Start Claude Code
+### Step 1: Clone This Repo
 ```bash
 # Clone the repository
 git clone https://github.com/managedfunctions/claude-code-sdk-container
 cd claude-code-sdk-container
-
-# Start Claude Code FROM INSIDE this directory
-claude
 ```
 
 ### Step 2: Get Your Claude OAuth Token
@@ -26,13 +23,19 @@ claude setup-token
 # COPY IT NOW - you can't get it again!
 ```
 
-### Step 3: Create .env File in This Directory
+### Step 3: Create .env File in This Directory and paste your OAuth token and set a Container API key of your choosing
 ```bash
 # From this repo directory, create .env file (NO QUOTES!)
 cat > .env << 'EOF'
 CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
 CLAUDE_CODE_SDK_CONTAINER_API_KEY=pick-any-random-string-as-your-api-key
 EOF
+```
+
+### Step 4: Start Claude Code
+```bash
+# Start Claude Code FROM INSIDE this directory
+claude
 ```
 
 ## 🤖 Now Let Claude Code Do Everything Else!
@@ -58,6 +61,7 @@ Please build the Docker container, run it, and verify it's working by testing th
 ---
 
 <details>
+
 <summary>☁️ Deployment Options - Let Claude Code deploy this for you!</summary>
 
 | Platform             | Service                              | “Deploy a Dockerized app” docs                                                                                                                                                                                                                  |

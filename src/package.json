@@ -1,0 +1,27 @@
+{
+  "name": "claude-code-sdk-container",
+  "version": "1.0.0",
+  "description": "Claude Code SDK containerized API server",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "echo '❌ Please run this app in Docker. Use: ./test.sh' && exit 1",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "docker:build": "cd .. && docker build -t claude-code-sdk .",
+    "docker:run": "cd .. && docker run -d -p 8080:8080 --env-file .env claude-code-sdk",
+    "docker:test": "cd .. && ./test.sh"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^1.0.117",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "eslint": "^9.35.0",
+    "typescript": "^5.9.2"
+  }
+}

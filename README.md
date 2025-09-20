@@ -14,24 +14,23 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 
 ### Step 1: Clone This Repo
 ```bash
-# Clone the repository
 git clone https://github.com/receipting/claude-code-sdk-container
 cd claude-code-sdk-container
 ```
 
 ### Step 2: Get Your Claude OAuth Token
-```bash
-# Run this in your terminal (ONE TIME ONLY - you won't see it again!)
-claude setup-token
 
-# This opens a browser to login to Anthropic
-# After login, the token appears in your terminal
-# COPY IT NOW - you can't get it again!
+```bash
+claude setup-token
 ```
 
+This opens a browser to login to Anthropic
+After login, the token appears in your terminal
+COPY IT NOW - you can't get it again!
+
 ### Step 3: Create .env File in This Directory and paste your OAuth token and set a Container API key of your choosing
+
 ```bash
-# From this repo directory, create .env file (NO QUOTES!)
 cat > .env << 'EOF'
 CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
 CLAUDE_CODE_SDK_CONTAINER_API_KEY=pick-any-random-string-as-your-api-key
@@ -39,8 +38,10 @@ EOF
 ```
 
 ### Step 4: Start Claude Code
+
+Start Claude Code FROM INSIDE this directory
+
 ```bash
-# Start Claude Code FROM INSIDE this directory
 claude
 ```
 

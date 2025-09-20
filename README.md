@@ -15,7 +15,7 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 ### Step 1: Clone This Repo
 ```bash
 # Clone the repository
-git clone https://github.com/managedfunctions/claude-code-sdk-container
+git clone https://github.com/receipting/claude-code-sdk-container
 cd claude-code-sdk-container
 ```
 
@@ -47,7 +47,6 @@ claude
 ## 🤖 Now Let Claude Code Do Everything Else!
 
 **That's it! Now just tell Claude Code (which you already have running):**
-> "Build the Docker container, run it, and test that it works"
 
 Claude Code will handle all the Docker commands, testing, and setup for you.
 

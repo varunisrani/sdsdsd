@@ -24,11 +24,13 @@ cd claude-code-sdk-container
 claude setup-token
 ```
 
-This opens a browser to login to Anthropic
-After login, the token appears in your terminal
+This opens a browser to login to Anthropic.
+
+After login, the token appears in your terminal.
+
 COPY IT NOW - you can't get it again!
 
-### Step 3: Create .env File in This Directory and paste your OAuth token and set a Container API key of your choosing
+### Step 3: Create .env File in This Directory
 
 ```bash
 cat > .env << 'EOF'
@@ -36,6 +38,8 @@ CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
 CLAUDE_CODE_SDK_CONTAINER_API_KEY=pick-any-random-string-as-your-api-key
 EOF
 ```
+
+Paste your Claude Code OAuth token and set a Container API key of your choosing
 
 ### Step 4: Start Claude Code
 

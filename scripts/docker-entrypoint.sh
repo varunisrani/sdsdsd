@@ -9,8 +9,8 @@ if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
   mkdir -p ~/.claude
   echo "Created ~/.claude directory"
 
-  # Create .credentials.json with far future expiry
-  EXPIRY_DATE=$(date -u -d "+10 years" +%Y-%m-%dT%H:%M:%S.%3NZ 2>/dev/null || date -u -v+10y +%Y-%m-%dT%H:%M:%S.000Z)
+  # Create .credentials.json with far future expiry (Alpine-compatible)
+  EXPIRY_DATE=$(date -u -d "@$(($(date +%s) + 315360000))" +%Y-%m-%dT%H:%M:%S.000Z 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%S.000Z)
   cat > ~/.claude/.credentials.json << EOF
 {
   "claudeAiOauth": {
@@ -29,7 +29,7 @@ EOF
   "numStartups": 1,
   "installMethod": "unknown",
   "autoUpdates": true,
-  "firstStartTime": "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)",
+  "firstStartTime": "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)",
   "userID": "container-user",
   "projects": {
     "/app": {
@@ -71,6 +71,6 @@ EOF
   echo "Config file size: $(stat -c%s ~/.claude.json 2>/dev/null || echo 'N/A')"
 fi
 
-# Start the Node.js server (using ES Modules)
-echo "Starting Node.js server (ES Modules)..."
-exec node index.mjs
+# Start the TypeScript server
+echo "Starting TypeScript server with tsx..."
+exec tsx server.ts

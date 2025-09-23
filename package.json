@@ -1,0 +1,33 @@
+{
+  "name": "claude-code-sdk-container",
+  "version": "1.0.0",
+  "description": "Claude Code SDK containerized API server with CLI interface",
+  "type": "module",
+  "main": "server.ts",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "start": "node --loader tsx/esm server.ts",
+    "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "docker:build": "docker build -t claude-code-sdk .",
+    "docker:run": "docker run -d -p 8080:8080 --env-file .env claude-code-sdk",
+    "docker:test": "./test.sh"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-code": "^1.0.117",
+    "@hono/node-server": "^1.0.0",
+    "@hono/node-ws": "^1.0.0",
+    "hono": "^4.0.0",
+    "jose": "^5.0.0",
+    "resend": "^3.0.0",
+    "tsx": "^4.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@types/node": "^24.5.2",
+    "eslint": "^9.35.0",
+    "typescript": "^5.9.2"
+  }
+}

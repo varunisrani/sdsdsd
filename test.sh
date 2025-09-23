@@ -36,7 +36,15 @@ if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
 fi
 
 if [ -z "$CLAUDE_CODE_SDK_CONTAINER_API_KEY" ]; then
-    echo -e "${YELLOW}⚠️  WARNING: CLAUDE_CODE_SDK_CONTAINER_API_KEY not set - API will be public${NC}"
+    echo -e "${YELLOW}⚠️  WARNING: CLAUDE_CODE_SDK_CONTAINER_API_KEY not set - REST API will be public${NC}"
+fi
+
+if [ -z "$RESEND_API_KEY" ]; then
+    echo -e "${YELLOW}⚠️  WARNING: RESEND_API_KEY not set - magic links will be logged instead of sent${NC}"
+fi
+
+if [ -z "$SESSION_SECRET" ]; then
+    echo -e "${YELLOW}⚠️  WARNING: SESSION_SECRET not set - using default (not secure for production)${NC}"
 fi
 
 echo "✅ Environment variables loaded"
@@ -161,22 +169,31 @@ echo ""
 echo "========================================"
 echo -e "${GREEN}🎉 All tests passed! Container is working correctly.${NC}"
 echo ""
-echo "Try it out by asking Claude to hit the SDK endpoint with a question:"
+echo "🌐 Two ways to use Claude Code SDK:"
 echo ""
-echo "Example: \"How far is it from Sydney to London?\""
+echo "1. 📱 Web CLI Interface (NEW!):"
+echo "   Visit http://localhost:8080 in your browser"
+echo "   • Enter your email to receive a magic link"
+echo "   • Click the link to authenticate"
+echo "   • Use the interactive CLI with real-time streaming"
 echo ""
-echo "This will use the Claude Code SDK running in Docker (not Claude Code on your local machine)"
-echo "to make an API call to Claude and return the response."
-echo ""
+echo "2. 🔧 REST API (Original):"
 if [ -n "$CLAUDE_CODE_SDK_CONTAINER_API_KEY" ]; then
-    echo "curl -X POST http://localhost:8080/query \\"
-    echo "  -H \"Content-Type: application/json\" \\"
-    echo "  -H \"X-API-Key: YOUR_API_KEY_HERE\" \\"
-    echo "  -d '{\"prompt\": \"How far is it from Sydney to London?\"}'"
+    echo "   curl -X POST http://localhost:8080/query \\"
+    echo "     -H \"Content-Type: application/json\" \\"
+    echo "     -H \"X-API-Key: \$CLAUDE_CODE_SDK_CONTAINER_API_KEY\" \\"
+    echo "     -d '{\"prompt\": \"How far is it from Sydney to London?\"}'"
 else
-    echo "curl -X POST http://localhost:8080/query \\"
-    echo "  -H \"Content-Type: application/json\" \\"
-    echo "  -d '{\"prompt\": \"How far is it from Sydney to London?\"}'"
+    echo "   curl -X POST http://localhost:8080/query \\"
+    echo "     -H \"Content-Type: application/json\" \\"
+    echo "     -d '{\"prompt\": \"How far is it from Sydney to London?\"}'"
+fi
+echo ""
+echo "📧 Email Setup:"
+if [ -n "$RESEND_API_KEY" ]; then
+    echo "   ✅ Resend API key configured - magic links will be sent via email"
+else
+    echo "   ⚠️  No Resend API key - magic links will be logged to console"
 fi
 echo ""
 echo "To update to the latest version of Claude Code SDK, run:"

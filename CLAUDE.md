@@ -1,19 +1,27 @@
 # Claude Code SDK Container
 
-This repository provides a Dockerized API server that wraps the Claude Code SDK, allowing you to interact with Claude AI through HTTP endpoints instead of requiring local CLI installation.
+This repository provides a Dockerized server that wraps the Claude Code SDK, offering both a web-based CLI interface and REST API endpoints for interacting with Claude AI.
 
 ## IMPORTANT: HOW TO RUN THIS APPLICATION
 
-**THIS APPLICATION MUST RUN IN DOCKER - DO NOT RUN IT LOCALLY WITH NODE**
+**THIS APPLICATION MUST RUN IN DOCKER - DO NOT RUN IT LOCALLY WITH NODE/TS**
 
 When asked to "run the app", "start the application", or similar:
-1. ALWAYS use Docker, NEVER use `node src/index.mjs` or `npm start`
+1. ALWAYS use Docker, NEVER use `tsx server.ts`, `node server.ts`, or `npm start`
 2. The correct way to run is: `./test.sh` (it handles Docker automatically)
 3. Or manually: `docker build -t claude-code-sdk .` then `docker run -d -p 8080:8080 --env-file .env claude-code-sdk`
 
-## HOW TO QUERY THE API ENDPOINT
+## TWO WAYS TO USE CLAUDE
 
-When calling the containerized Claude SDK API, use this exact format to avoid curl issues:
+### 1. 🌐 Web CLI Interface (NEW!)
+Visit http://localhost:8080 in your browser:
+- Enter your email address
+- Receive a magic link via email (using Resend)
+- Click the link to authenticate
+- Use the interactive CLI with real-time streaming responses
+
+### 2. 🔧 REST API (Original)
+Use curl or any HTTP client to query Claude programmatically:
 
 ```bash
 # Get the API key from the .env file first:
@@ -35,14 +43,17 @@ Please read the [README.md](./README.md) for complete setup instructions and usa
 ## What This Does
 
 - Containerizes the Claude Code SDK for deployment anywhere Docker runs
+- Provides a web-based CLI interface with email magic link authentication
 - Provides REST API endpoints for health checks and querying Claude
-- Handles authentication via OAuth tokens and optional API key protection
-- Enables Claude AI access from any programming language or platform via HTTP
+- Handles dual authentication: magic links for web CLI, API keys for REST API
+- Enables Claude AI access via interactive web interface or programmatic HTTP calls
+- Real-time streaming responses via WebSocket for CLI interface
 
 ## Key Files
 
-- `src/index.mjs` - Express.js API server (MUST BE RUN IN DOCKER ONLY)
-- `Dockerfile` - Multi-stage Docker build configuration
+- `server.ts` - Hono-based server with WebSocket support (MUST BE RUN IN DOCKER ONLY)
+- `web/` - React frontend for CLI interface
+- `Dockerfile` - Multi-stage Docker build (web + server)
 - `test.sh` - Test script that starts Docker container and verifies everything works
 - `README.md` - Complete documentation and setup guide
 
@@ -59,7 +70,8 @@ chmod +x test.sh
 ```
 
 DO NOT use any of these commands:
-- ❌ `node src/index.mjs`
+- ❌ `tsx server.ts`
+- ❌ `node server.ts`
 - ❌ `npm start`
 - ❌ `npm run start`
-- ❌ `cd src && npm start`
+- ❌ `npm run dev`

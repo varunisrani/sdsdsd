@@ -65,10 +65,31 @@ COPY IT NOW - you can't get it again!
 cat > .env << 'EOF'
 CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
 CLAUDE_CODE_SDK_CONTAINER_API_KEY=pick-any-random-string-as-your-api-key
+
+# Optional: Email service for magic link authentication (web CLI)
+# RESEND_API_KEY=re_your-resend-api-key-here
+# EMAIL_FROM=Claude CLI <noreply@yourdomain.com>
+
+# Optional: Email access control for web CLI
+# ALLOWED_EMAILS=user1@company.com,user2@company.com
+# ALLOWED_DOMAINS=company.com,partner.org
 EOF
 ```
 
-Paste your Claude Code OAuth token and set a Container API key of your choosing
+**Required:**
+- **CLAUDE_CODE_OAUTH_TOKEN**: Your Claude Code OAuth token
+- **CLAUDE_CODE_SDK_CONTAINER_API_KEY**: API key for REST endpoint protection
+
+**Optional Email Configuration:**
+- **RESEND_API_KEY**: [Resend](https://resend.com) API key for sending magic link emails
+- **EMAIL_FROM**: Sender address (must be verified in your Resend account)
+- **ALLOWED_EMAILS**: Comma-separated list of specific email addresses allowed to access web CLI
+- **ALLOWED_DOMAINS**: Comma-separated list of email domains allowed to access web CLI
+
+**Email Access Behavior:**
+- If `RESEND_API_KEY` is not set: Magic links are logged to console (development mode)
+- If neither `ALLOWED_EMAILS` nor `ALLOWED_DOMAINS` is set: Any valid email can request access
+- If either allowlist is configured: Only matching emails/domains can access the web CLI
 
 ### Step 4: Start Claude Code
 

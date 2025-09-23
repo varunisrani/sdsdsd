@@ -24,7 +24,7 @@ fi
 
 # Check current version
 echo "Checking current Claude Code SDK version..."
-CURRENT_VERSION=$(grep '"@anthropic-ai/claude-code"' src/package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+CURRENT_VERSION=$(grep '"@anthropic-ai/claude-code"' package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
 echo -e "Current version: ${BLUE}$CURRENT_VERSION${NC}"
 echo ""
 
@@ -34,9 +34,7 @@ CONTAINER_RUNNING=$(docker ps --format "table {{.Names}}" | grep -c claude-code-
 
 # Update packages
 echo "Fetching latest version from npm..."
-cd src
 LATEST_VERSION=$(npm view @anthropic-ai/claude-code version 2>/dev/null || echo "")
-cd ..
 
 if [ -z "$LATEST_VERSION" ]; then
     echo -e "${RED}❌ Could not fetch latest version from npm${NC}"
@@ -63,9 +61,7 @@ fi
 
 # Update package
 echo "Updating Claude Code SDK..."
-cd src
 npm update @anthropic-ai/claude-code
-cd ..
 echo -e "${GREEN}✅ Package updated${NC}"
 echo ""
 
@@ -109,7 +105,7 @@ sleep 3
 
 # Test health endpoint
 echo "Testing health endpoint..."
-HEALTH_RESPONSE=$(curl -s http://localhost:8080/ 2>/dev/null || echo "FAILED")
+HEALTH_RESPONSE=$(curl -s http://localhost:8080/health 2>/dev/null || echo "FAILED")
 
 if [[ "$HEALTH_RESPONSE" == "FAILED" ]]; then
     echo -e "${RED}❌ Health check failed${NC}"
@@ -124,7 +120,7 @@ fi
 echo ""
 
 # Show final status
-NEW_VERSION=$(grep '"@anthropic-ai/claude-code"' src/package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+NEW_VERSION=$(grep '"@anthropic-ai/claude-code"' package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
 echo "==========================================="
 echo -e "${GREEN}🎉 Update complete!${NC}"
 echo -e "Version: ${GREEN}$NEW_VERSION${NC}"

@@ -13,6 +13,6 @@
     "allowSyntheticDefaultImports": true,
     "types": ["node"]
   },
-  "include": ["server.ts", "web/src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["server.ts"],
+  "exclude": ["node_modules", "dist", "web"]
 }

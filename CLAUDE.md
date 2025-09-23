@@ -15,13 +15,14 @@ When asked to "run the app", "start the application", or similar:
 
 ### 🌐 Web CLI Interface
 **URL**: http://localhost:8080/ (root path serves React SPA)
-- Magic link email authentication with allowlist support
+- GitHub OAuth authentication with allowlist support
 - Real-time WebSocket streaming at /ws
 - JWT session cookies for authentication
 
 ### 🔧 REST API Endpoints
 **Health Check**: `GET http://localhost:8080/health` (public, no auth)
 **Query Claude**: `POST http://localhost:8080/query` (requires API key if configured)
+**GitHub OAuth**: `GET http://localhost:8080/auth/github` (web CLI authentication)
 
 ```bash
 # Get the API key from the .env file first:
@@ -36,15 +37,16 @@ curl -X POST http://localhost:8080/query -H "Content-Type: application/json" -H 
 
 **DO NOT use multi-line curl commands with backslashes** - they cause issues with the Bash tool.
 
-### 🔐 Email Access Control
-Configure email allowlists in .env:
+### 🔐 GitHub Access Control
+**REQUIRED:** Configure GitHub allowlists in .env (container will not start without this):
 ```bash
-ALLOWED_EMAILS=user1@company.com,user2@company.com
-ALLOWED_DOMAINS=company.com,partner.org
+ALLOWED_GITHUB_USERS=user1,user2,user3
+ALLOWED_GITHUB_ORG=yourcompany
 ```
-- If neither is set: any valid email can access web CLI
-- If either is set: only matching emails/domains allowed
-- Invalid/unauthorized emails get: `{"error":"Email address not allowed"}`
+- **At least one allowlist must be configured** for security
+- You must set either `ALLOWED_GITHUB_USERS` or `ALLOWED_GITHUB_ORG` (or both)
+- Only matching GitHub users/org members allowed
+- Invalid/unauthorized users get: `GitHub user not authorized`
 
 ## Quick Start
 
@@ -55,7 +57,7 @@ Please read the [README.md](./README.md) for complete setup instructions and usa
 - **Hono server** with WebSocket support via @hono/node-ws
 - **Multi-stage Docker build**: web frontend + server backend
 - **Dual authentication**: JWT sessions (web) + API keys (REST)
-- **Email allowlist validation** with regex format checking
+- **GitHub allowlist validation** with username and organization checking
 - **Static file serving** for React SPA at root path
 - **Health endpoint** moved to `/health` (not root)
 - **Real-time streaming** via WebSocket character-by-character

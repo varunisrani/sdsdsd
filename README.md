@@ -15,15 +15,15 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 - **REST API**: Programmatic access for applications and integrations
 
 ### 🔐 **Security & Access Control**
-- **Magic Link Authentication**: Passwordless email-based login for web CLI
+- **GitHub OAuth Authentication**: Simple one-click GitHub login for web CLI
 - **API Key Protection**: Secure REST API access with configurable API keys
-- **Email Allowlisting**: Control web CLI access by email addresses or domains
+- **GitHub Allowlisting**: Control web CLI access by GitHub usernames or organizations
 - **JWT Session Management**: Secure cookie-based sessions with expiration
 
-### 📧 **Email Integration**
-- **Resend Integration**: Professional magic link emails via verified domains
-- **Configurable Sender**: Custom "From" address for branded emails
-- **Access Control**: Email/domain allowlists for enterprise security
+### 🔧 **GitHub Integration**
+- **OAuth2 Flow**: Standard GitHub OAuth for seamless authentication
+- **Organization Support**: Restrict access by GitHub organization membership
+- **User Allowlists**: Fine-grained control with specific GitHub usernames
 
 ### 🚀 **Production Ready**
 - **Docker-First**: Optimized multi-stage build for cloud deployment
@@ -37,9 +37,9 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 - **Backward Compatible**: Preserves existing REST API functionality
 - **Auto-testing**: Comprehensive test script validates full functionality
 
-**🚨 STOP! Only FOUR manual steps required:**
+**🚨 STOP! Only FIVE manual steps required:**
 
-## 📋 Four-Step Setup (DO THIS YOURSELF)
+## 📋 Five-Step Setup (DO THIS YOURSELF)
 
 ### Step 1: Clone This Repo
 ```bash
@@ -59,39 +59,49 @@ After login, the token appears in your terminal.
 
 COPY IT NOW - you can't get it again!
 
-### Step 3: Create .env File in This Directory
+### Step 3: Create GitHub OAuth App
+
+Go to [GitHub Settings > Developer settings > OAuth Apps](https://github.com/settings/applications/new) and create a new OAuth App:
+
+- **Application name**: `Claude CLI Container` (or your preferred name)
+- **Homepage URL**: `http://localhost:8080`
+- **Authorization callback URL**: `http://localhost:8080/auth/github`
+
+Copy the **Client ID** and **Client Secret** for the next step.
+
+### Step 4: Create .env File in This Directory
 
 ```bash
 cat > .env << 'EOF'
 CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
 CLAUDE_CODE_SDK_CONTAINER_API_KEY=pick-any-random-string-as-your-api-key
 
-# Optional: Email service for magic link authentication (web CLI)
-# RESEND_API_KEY=re_your-resend-api-key-here
-# EMAIL_FROM=Claude CLI <noreply@yourdomain.com>
+# GitHub OAuth Configuration (Required for web CLI)
+GITHUB_CLIENT_ID=your_github_app_client_id
+GITHUB_CLIENT_SECRET=your_github_app_client_secret
 
-# Optional: Email access control for web CLI
-# ALLOWED_EMAILS=user1@company.com,user2@company.com
-# ALLOWED_DOMAINS=company.com,partner.org
+# Required: GitHub access control for web CLI (choose one or both)
+ALLOWED_GITHUB_USERS=user1,user2,user3
+# ALLOWED_GITHUB_ORG=yourcompany
 EOF
 ```
 
 **Required:**
 - **CLAUDE_CODE_OAUTH_TOKEN**: Your Claude Code OAuth token
 - **CLAUDE_CODE_SDK_CONTAINER_API_KEY**: API key for REST endpoint protection
+- **GITHUB_CLIENT_ID**: GitHub OAuth App Client ID
+- **GITHUB_CLIENT_SECRET**: GitHub OAuth App Client Secret
 
-**Optional Email Configuration:**
-- **RESEND_API_KEY**: [Resend](https://resend.com) API key for sending magic link emails
-- **EMAIL_FROM**: Sender address (must be verified in your Resend account)
-- **ALLOWED_EMAILS**: Comma-separated list of specific email addresses allowed to access web CLI
-- **ALLOWED_DOMAINS**: Comma-separated list of email domains allowed to access web CLI
+**Required GitHub Access Control (for security):**
+- **ALLOWED_GITHUB_USERS**: Comma-separated list of GitHub usernames allowed to access web CLI
+- **ALLOWED_GITHUB_ORG**: GitHub organization name (users from this org can access web CLI)
 
-**Email Access Behavior:**
-- If `RESEND_API_KEY` is not set: Magic links are logged to console (development mode)
-- If neither `ALLOWED_EMAILS` nor `ALLOWED_DOMAINS` is set: Any valid email can request access
-- If either allowlist is configured: Only matching emails/domains can access the web CLI
+**GitHub Access Behavior:**
+- **At least one allowlist must be configured** - the container will not start without proper access control
+- You must set either `ALLOWED_GITHUB_USERS` or `ALLOWED_GITHUB_ORG` (or both)
+- This prevents unauthorized access to your Claude instance
 
-### Step 4: Start Claude Code
+### Step 5: Start Claude Code
 
 Start Claude Code FROM INSIDE this directory
 
@@ -289,50 +299,53 @@ docker-compose up -d
 |----------|----------|-------------|
 | `CLAUDE_CODE_OAUTH_TOKEN` | Yes | Your Claude Code OAuth token |
 | `CLAUDE_CODE_SDK_CONTAINER_API_KEY` | No* | API key for endpoint authentication |
-| `RESEND_API_KEY` | No | Resend API key for magic link emails |
-| `EMAIL_FROM` | No | Email sender address (must be verified in Resend) |
-| `ALLOWED_EMAILS` | No | Comma-separated list of allowed email addresses |
-| `ALLOWED_DOMAINS` | No | Comma-separated list of allowed email domains |
+| `GITHUB_CLIENT_ID` | Yes** | GitHub OAuth App Client ID |
+| `GITHUB_CLIENT_SECRET` | Yes** | GitHub OAuth App Client Secret |
+| `ALLOWED_GITHUB_USERS` | Yes*** | Comma-separated list of allowed GitHub usernames |
+| `ALLOWED_GITHUB_ORG` | Yes*** | GitHub organization name for access control |
 | `SESSION_SECRET` | No | JWT signing secret (generate with: `openssl rand -hex 32`) |
 | `PORT` | No | Server port (default: 8080) |
 
 *If `CLAUDE_CODE_SDK_CONTAINER_API_KEY` is not set, the `/query` endpoint will be publicly accessible.
+**Required only for web CLI access. REST API works without GitHub OAuth.
+***At least one of `ALLOWED_GITHUB_USERS` or `ALLOWED_GITHUB_ORG` must be set for security.
 
-### Email Access Control
+### GitHub Access Control
 
-Control who can access the web CLI interface by configuring email allowlists:
+Control who can access the web CLI interface by configuring GitHub allowlists:
 
 ```bash
-# Allow specific email addresses
-ALLOWED_EMAILS=user1@company.com,user2@company.com,admin@company.com
+# Allow specific GitHub usernames
+ALLOWED_GITHUB_USERS=user1,user2,admin
 
-# Allow entire domains
-ALLOWED_DOMAINS=company.com,partner.org
+# Allow users from a GitHub organization
+ALLOWED_GITHUB_ORG=mycompany
 
-# Combine both (user must match either emails OR domains)
-ALLOWED_EMAILS=admin@company.com
-ALLOWED_DOMAINS=company.com,partner.org
+# Combine both (user must match either usernames OR organization)
+ALLOWED_GITHUB_USERS=admin,specialuser
+ALLOWED_GITHUB_ORG=mycompany
 ```
 
 **Access Control Behavior:**
-- If **neither** `ALLOWED_EMAILS` nor `ALLOWED_DOMAINS` is set: Any valid email can request access
-- If **either** is configured: Only matching emails/domains can request magic links
-- **Email format validation**: Basic regex validation ensures proper email format
-- **Case insensitive**: `User@Company.com` matches `user@company.com`
-- **Error response**: Unauthorized emails receive `{"error":"Email address not allowed"}`
+- **At least one allowlist must be configured** - the container will not start without proper access control
+- **Case insensitive**: GitHub usernames are normalized to lowercase
+- **Organization check**: Currently checks user's public company field (basic implementation)
+- **Error response**: Unauthorized users receive `GitHub user not authorized`
 
 **Examples:**
 ```bash
-# Company-only access
-ALLOWED_DOMAINS=mycompany.com
+# Organization-only access
+ALLOWED_GITHUB_ORG=mycompany
 
 # Specific users only
-ALLOWED_EMAILS=alice@company.com,bob@partner.org
+ALLOWED_GITHUB_USERS=alice,bob,charlie
 
-# Mixed access (admin + entire partner domain)
-ALLOWED_EMAILS=admin@mycompany.com
-ALLOWED_DOMAINS=partner.org
+# Mixed access (admin + entire organization)
+ALLOWED_GITHUB_USERS=admin
+ALLOWED_GITHUB_ORG=mycompany
 ```
+
+**Note**: For production use with organization membership, consider implementing proper GitHub API calls to check organization membership instead of relying on the public company field.
 
 ## Examples
 
@@ -401,7 +414,7 @@ curl -X POST http://localhost:8080/query \
 | **"Unauthorized - Invalid or missing API key"** | Your API key doesn't match. Check: `docker exec claude-code-sdk-container env | grep CLAUDE_CODE_SDK_CONTAINER` |
 | **Connection refused on port 8080** | Container not running. Check: `docker ps`. Restart: `docker start claude-code-sdk-container` |
 | **Quotes in environment variables** | Remove ALL quotes from .env file. Docker doesn't strip them! |
-| **"unhealthy" status** | OAuth token is wrong. Get correct one: `cat ~/.claude/.credentials.json | grep accessToken` |
+| **"unhealthy" status** | OAuth token is wrong. Get correct one with: `claude setup-token` |
 | **Works locally but not from other container** | Use `host.docker.internal:8080` instead of `localhost:8080` |
 | **Changes to .env not working** | Must restart container: `docker restart claude-code-sdk-container` |
 

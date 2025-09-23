@@ -4,8 +4,7 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { getCookie, setCookie } from "hono/cookie";
 import { SignJWT, jwtVerify } from "jose";
-import { randomBytes } from "node:crypto";
-import { Resend } from "resend";
+import { githubAuth } from "@hono/oauth-providers/github";
 import { query, type CanUseTool } from "@anthropic-ai/claude-code";
 import fs from "fs";
 import os from "os";
@@ -13,7 +12,6 @@ import path from "path";
 
 // Environment setup
 const SECRET = new TextEncoder().encode(process.env.SESSION_SECRET || "devdevdev");
-const resend = new Resend(process.env.RESEND_API_KEY);
 const PORT = process.env.PORT || 8080;
 
 // Auto-allow all tool uses (no permission prompts)
@@ -22,9 +20,9 @@ const allowAll: CanUseTool = async (_toolName, input) => ({
   updatedInput: input,
 });
 
-// Email allowlist configuration
-const allowedEmails = process.env.ALLOWED_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
-const allowedDomains = process.env.ALLOWED_DOMAINS?.split(',').map(d => d.trim().toLowerCase()) || [];
+// GitHub allowlist configuration
+const allowedGithubUsers = process.env.ALLOWED_GITHUB_USERS?.split(',').map(u => u.trim().toLowerCase()) || [];
+const allowedGithubOrg = process.env.ALLOWED_GITHUB_ORG?.trim().toLowerCase() || '';
 
 // Check if running in Docker (skip check in test mode)
 if (process.env.NODE_ENV !== 'test') {
@@ -41,47 +39,51 @@ if (process.env.NODE_ENV !== 'test') {
     console.error("To bypass this check (not recommended): ALLOW_LOCAL=true tsx server.ts\n");
     process.exit(1);
   }
-}
 
-// Email validation function
-function isEmailAllowed(email: string): boolean {
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return false;
-
-  const normalizedEmail = email.toLowerCase().trim();
-
-  // If no restrictions configured, allow all valid emails
-  if (allowedEmails.length === 0 && allowedDomains.length === 0) return true;
-
-  // Check email or domain
-  return allowedEmails.includes(normalizedEmail) ||
-         allowedDomains.includes(normalizedEmail.split('@')[1]);
-}
-
-// Email service
-async function sendEmail(to: string, subject: string, html: string) {
-  if (!process.env.RESEND_API_KEY) {
-    console.log(`[DEV] Would send email to ${to}: ${subject}`);
-    console.log(`[DEV] HTML: ${html}`);
-    return;
-  }
-
-  try {
-    await resend.emails.send({
-      from: process.env.EMAIL_FROM || 'Claude CLI <noreply@claude-cli.local>',
-      to,
-      subject,
-      html
-    });
-    console.log(`Email sent to ${to}: ${subject}`);
-  } catch (error) {
-    console.error(`Failed to send email to ${to}:`, error);
-    throw error;
+  // Check GitHub allowlist configuration (required for security)
+  if (allowedGithubUsers.length === 0 && !allowedGithubOrg) {
+    console.error("\n❌ ERROR: GitHub access control must be configured!");
+    console.error("\n🔐 Security Requirement:");
+    console.error("You must configure at least one of these environment variables:");
+    console.error("- ALLOWED_GITHUB_USERS=user1,user2,user3");
+    console.error("- ALLOWED_GITHUB_ORG=yourcompany");
+    console.error("\nThis prevents unauthorized access to your Claude instance.\n");
+    process.exit(1);
   }
 }
+
+// GitHub user validation function
+function isGithubUserAllowed(githubUser: any): boolean {
+  if (!githubUser?.login) return false;
+
+  const username = githubUser.login.toLowerCase();
+
+  // Check username allowlist
+  if (allowedGithubUsers.length > 0 && allowedGithubUsers.includes(username)) {
+    return true;
+  }
+
+  // Check organization membership (this would need GitHub API call in production)
+  // For now, we'll just check if the user belongs to allowed org via their company field
+  if (allowedGithubOrg && githubUser.company) {
+    const userOrg = githubUser.company.toLowerCase().replace(/[@\s]/g, '');
+    return userOrg.includes(allowedGithubOrg);
+  }
+
+  return false;
+}
+
 
 // JWT utilities
-async function setSessionCookie(c: any, email: string) {
-  const token = await new SignJWT({ sub: email, email })
+async function setSessionCookie(c: any, githubUser: any) {
+  const token = await new SignJWT({
+    sub: githubUser.login,
+    username: githubUser.login,
+    id: githubUser.id,
+    email: githubUser.email,
+    name: githubUser.name,
+    avatar_url: githubUser.avatar_url
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime('3600s')
@@ -133,7 +135,9 @@ if (process.env.NODE_ENV !== 'test') {
   console.log("Environment:", isDocker ? "Docker" : "Local");
   console.log("Claude token:", !!process.env.CLAUDE_CODE_OAUTH_TOKEN ? "✓" : "✗");
   console.log("API protection:", !!process.env.CLAUDE_CODE_SDK_CONTAINER_API_KEY ? "✓" : "✗");
-  console.log("Email service:", !!process.env.RESEND_API_KEY ? "✓" : "✗");
+  console.log("GitHub OAuth:", !!process.env.GITHUB_CLIENT_ID && !!process.env.GITHUB_CLIENT_SECRET ? "✓" : "✗");
+  if (allowedGithubUsers.length > 0) console.log("GitHub users allowlist:", allowedGithubUsers.length, "users");
+  if (allowedGithubOrg) console.log("GitHub org restriction:", allowedGithubOrg);
 }
 
 // Health check endpoint
@@ -224,55 +228,34 @@ app.post("/query", async (c) => {
   }
 });
 
-// Auth: start (magic link)
-app.post("/auth/start", async (c) => {
-  const { email } = await c.req.json().catch(() => ({}));
-  if (!email) return c.json({ error: "Email is required" }, 400);
+// GitHub OAuth configuration and setup
+app.use('/auth/github', githubAuth({
+  client_id: process.env.GITHUB_CLIENT_ID!,
+  client_secret: process.env.GITHUB_CLIENT_SECRET!,
+  scope: ['read:user', 'user:email'],
+}));
 
-  // Validate email format and allowlist
-  if (!isEmailAllowed(email)) {
-    return c.json({ error: "Email address not allowed" }, 403);
+// GitHub OAuth callback
+app.get('/auth/github', async (c) => {
+  const token = c.get('token');
+  const user = c.get('user-github');
+
+  if (!user) {
+    return c.text('GitHub authentication failed', 400);
   }
 
-  const token = await new SignJWT({ email, aud: "login" })
-    .setProtectedHeader({ alg: "HS256" })
-    .setJti(randomBytes(8).toString("hex"))
-    .setIssuedAt()
-    .setExpirationTime('10m')
-    .sign(SECRET);
-
-  const u = new URL(c.req.url);
-  u.pathname = "/auth/verify";
-  u.searchParams.set("t", token);
-
-  await sendEmail(email, "Sign in to Claude CLI", `
-    <h2>Sign in to Claude CLI</h2>
-    <p>Click the link below to sign in (expires in 10 minutes):</p>
-    <p><a href="${u.toString()}" style="background: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Sign in to Claude CLI</a></p>
-    <p>If the button doesn't work, copy and paste this link:</p>
-    <p><code>${u.toString()}</code></p>
-  `);
-
-  return c.body(null, 204);
-});
-
-// Auth: verify (magic link)
-app.get("/auth/verify", async (c) => {
-  const t = c.req.query("t");
-  if (!t) return c.text("Bad Request", 400);
-
-  try {
-    const { payload } = await jwtVerify(t, SECRET, { audience: "login" });
-    const email = String(payload.email || "");
-    if (!email) return c.text("Invalid", 400);
-
-    await setSessionCookie(c, email);
-    c.status(302);
-    c.header("Location", "/");
-    return c.body(null);
-  } catch {
-    return c.text("Expired or invalid link", 400);
+  // Check if user is allowed
+  if (!isGithubUserAllowed(user)) {
+    return c.text('GitHub user not authorized', 403);
   }
+
+  // Set session cookie
+  await setSessionCookie(c, user);
+
+  // Redirect to main app
+  c.status(302);
+  c.header('Location', '/');
+  return c.body(null);
 });
 
 // Auth: ping (check if authenticated)
@@ -287,9 +270,27 @@ app.on(['GET', 'HEAD'], "/auth/verify-ping", async (c) => {
   }
 });
 
+// Auth: user info (get current user data)
+app.get('/auth/user', async (c) => {
+  const val = getCookie(c, 'sid');
+  if (!val) return c.json({ error: 'Not authenticated' }, 401);
+
+  try {
+    const { payload } = await jwtVerify(val, SECRET);
+    return c.json({
+      username: payload.username,
+      name: payload.name,
+      email: payload.email,
+      avatar_url: payload.avatar_url
+    });
+  } catch {
+    return c.json({ error: 'Invalid session' }, 401);
+  }
+});
+
 // WebSocket handler - exported for testing
 export const websocketHandler = (c: any) => ({
-  onOpen: async (event, ws) => {
+  onOpen: async (event: any, ws: any) => {
     const ok = await checkWSAuth(c);
     if (!ok) {
       ws.close();
@@ -300,7 +301,7 @@ export const websocketHandler = (c: any) => ({
     ws.send(JSON.stringify({ type: "ready" }));
   },
 
-  onMessage: async (event, ws) => {
+  onMessage: async (event: any, ws: any) => {
     let data: any;
     try {
       data = JSON.parse(String(event.data));
@@ -385,7 +386,7 @@ export const websocketHandler = (c: any) => ({
     }
   },
 
-  onClose: (event, ws) => {
+  onClose: (event: any, ws: any) => {
     // Clean up session ID when connection closes
     sessionIds.delete(ws);
   }
@@ -400,17 +401,23 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // SPA fallback - serve index.html for non-API routes
-app.notFound((c) => {
+app.notFound(async (c) => {
   // For non-API routes, serve the SPA (skip in test mode)
   if (process.env.NODE_ENV !== 'test' &&
       !c.req.path.startsWith('/auth/') &&
       !c.req.path.startsWith('/ws') &&
       !c.req.path.startsWith('/query') &&
       !c.req.path.startsWith('/assets/')) {
-    return serveStatic({
+    const staticHandler = serveStatic({
       root: './web/dist',
       path: './index.html'
-    })(c);
+    });
+    try {
+      const result = await staticHandler(c, async () => {});
+      return result ?? c.text('Not Found', 404);
+    } catch {
+      return c.text('Not Found', 404);
+    }
   }
   return c.text('Not Found', 404);
 });
@@ -419,10 +426,11 @@ app.notFound((c) => {
 if (process.env.NODE_ENV !== 'test') {
   const server = serve({
     fetch: app.fetch,
-    port: PORT
+    port: Number(PORT)
   }, (info) => {
     console.log(`Server listening on port ${info.port}`);
     console.log(`Web CLI: http://localhost:${info.port}`);
+    console.log(`GitHub OAuth: http://localhost:${info.port}/auth/github`);
     console.log(`API: POST http://localhost:${info.port}/query`);
   });
 

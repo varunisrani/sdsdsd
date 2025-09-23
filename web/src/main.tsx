@@ -92,7 +92,18 @@ function CLI() {
   };
 
   return (
-    <div style={{display:"grid", gridTemplateRows:"1fr auto", height:"100vh", fontFamily:"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"}}>
+    <div style={{
+      display:"grid",
+      gridTemplateRows:"1fr auto",
+      height:"100vh",
+      height:"100dvh", // Dynamic viewport height for mobile browsers
+      fontFamily:"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0
+    }}>
       <pre
         ref={preRef}
         style={{
@@ -106,7 +117,14 @@ function CLI() {
           lineHeight: "1.4"
         }}
       />
-      <div style={{display:"flex", gap:8, padding:8, borderTop:"1px solid #222", background:"#111"}}>
+      <div style={{
+        display:"flex",
+        gap:8,
+        padding:8,
+        borderTop:"1px solid #222",
+        background:"#111",
+        paddingBottom: "max(8px, env(safe-area-inset-bottom))" // Account for home indicator on iOS
+      }}>
         <input
           value={input}
           onChange={(e)=>setInput(e.target.value)}
@@ -123,7 +141,8 @@ function CLI() {
             background:"#000",
             color:"#fff",
             border:"1px solid #333",
-            fontSize: "14px"
+            fontSize: "16px", // Prevent zoom on iOS
+            borderRadius: "4px"
           }}
           disabled={!connected}
         />
@@ -134,7 +153,8 @@ function CLI() {
             background: connected ? "#0066cc" : "#333",
             color:"#fff",
             border:"none",
-            cursor: connected ? "pointer" : "default"
+            cursor: connected ? "pointer" : "default",
+            borderRadius: "4px"
           }}
           disabled={!connected}
         >

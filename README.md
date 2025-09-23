@@ -59,15 +59,20 @@ After login, the token appears in your terminal.
 
 COPY IT NOW - you can't get it again!
 
-### Step 3: Create GitHub OAuth App
+### Step 3: Create GitHub App
 
-Go to [GitHub Settings > Developer settings > OAuth Apps](https://github.com/settings/applications/new){:target="_blank"} and create a new OAuth App:
+Go to [GitHub Settings > Developer settings > GitHub Apps](https://github.com/settings/apps/new){:target="_blank"} and create a new GitHub App:
 
-- **Application name**: `Claude CLI Container` (or your preferred name)
+- **GitHub App name**: `Claude CLI Container` (or your preferred name)
 - **Homepage URL**: `http://localhost:8080`
-- **Authorization callback URL**: `http://localhost:8080/auth/github`
+- **Callback URL**: `http://localhost:8080/auth/github`
+- **Request user authorization (OAuth) during installation**: ✅ **Check this box**
+- **Webhook**: Uncheck "Active" (we don't need webhooks)
+- **Permissions**:
+  - Account permissions > Email addresses: **Read**
+  - Account permissions > Profile: **Read**
 
-Copy the **Client ID** and **Client Secret** for the next step.
+After creating the app, copy the **Client ID** and generate a **Client Secret** for the next step.
 
 ### Step 4: Create .env File in This Directory
 
@@ -76,7 +81,7 @@ cat > .env << 'EOF'
 CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
 CLAUDE_CODE_SDK_CONTAINER_API_KEY=pick-any-random-string-as-your-api-key
 
-# GitHub OAuth Configuration (Required for web CLI)
+# GitHub App Configuration (Required for web CLI)
 GITHUB_CLIENT_ID=your_github_app_client_id
 GITHUB_CLIENT_SECRET=your_github_app_client_secret
 
@@ -300,15 +305,15 @@ docker-compose up -d
 |----------|----------|-------------|
 | `CLAUDE_CODE_OAUTH_TOKEN` | Yes | Your Claude Code OAuth token |
 | `CLAUDE_CODE_SDK_CONTAINER_API_KEY` | No* | API key for endpoint authentication |
-| `GITHUB_CLIENT_ID` | Yes** | GitHub OAuth App Client ID |
-| `GITHUB_CLIENT_SECRET` | Yes** | GitHub OAuth App Client Secret |
+| `GITHUB_CLIENT_ID` | Yes** | GitHub App Client ID |
+| `GITHUB_CLIENT_SECRET` | Yes** | GitHub App Client Secret |
 | `ALLOWED_GITHUB_USERS` | Yes*** | Comma-separated list of allowed GitHub usernames |
 | `ALLOWED_GITHUB_ORG` | Yes*** | GitHub organization name for access control |
 | `SESSION_SECRET` | No | JWT signing secret (generate with: `openssl rand -hex 32`) |
 | `PORT` | No | Server port (default: 8080) |
 
 *If `CLAUDE_CODE_SDK_CONTAINER_API_KEY` is not set, the `/query` endpoint will be publicly accessible.
-**Required only for web CLI access. REST API works without GitHub OAuth.
+**Required only for web CLI access. REST API works without GitHub App authentication.
 ***At least one of `ALLOWED_GITHUB_USERS` or `ALLOWED_GITHUB_ORG` must be set for security.
 
 ### GitHub Access Control

@@ -228,12 +228,12 @@ app.post("/query", async (c) => {
   }
 });
 
-// GitHub OAuth configuration and setup
+// GitHub App configuration and setup
 app.use('/auth/github', githubAuth({
   client_id: process.env.GITHUB_CLIENT_ID!,
   client_secret: process.env.GITHUB_CLIENT_SECRET!,
   scope: ['read:user', 'user:email'],
-  oauthApp: true,
+  // oauthApp: false is default for GitHub Apps
 }));
 
 // GitHub OAuth callback

@@ -24,7 +24,7 @@ When asked to "run the app", "start the application", or similar:
 ### 🔧 REST API Endpoints
 **Health Check**: `GET http://localhost:8080/health` (public, no auth)
 **Query Claude**: `POST http://localhost:8080/query` (requires API key if configured)
-**GitHub OAuth**: `GET http://localhost:8080/auth/github` (web CLI authentication)
+**GitHub App Auth**: `GET http://localhost:8080/auth/github` (web CLI authentication)
 
 ```bash
 # CORRECT - Use separate commands, NOT command substitution in Bash tool:

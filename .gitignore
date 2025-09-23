@@ -139,7 +139,8 @@ wrangler.toml
 wrangler.json
 
 # Claude SDK / Authentication
-.claude/
+.claude/*
+!.claude/settings.json
 .credentials.json
 .claude.json
 claude.config.json

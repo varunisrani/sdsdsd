@@ -69,10 +69,9 @@ function CLI() {
     };
 
     function log(s: string){
-      if(preRef.current){
-        preRef.current.textContent += s;
-        preRef.current.scrollTop = preRef.current.scrollHeight;
-      }
+      if(!preRef.current) return;
+      preRef.current.textContent += s;
+      preRef.current.scrollTop = preRef.current.scrollHeight;
     }
 
     return () => ws.close();
@@ -82,10 +81,9 @@ function CLI() {
     if (!input.trim() || !connected) return;
 
     // Echo the user's input
-    if (preRef.current) {
-      preRef.current.textContent += `> ${input}\n`;
-      preRef.current.scrollTop = preRef.current.scrollHeight;
-    }
+    if (!preRef.current) return;
+    preRef.current.textContent += `> ${input}\n`;
+    preRef.current.scrollTop = preRef.current.scrollHeight;
 
     wsRef.current?.send(JSON.stringify({ prompt: input }));
     setInput("");

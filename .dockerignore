@@ -9,7 +9,6 @@ README.md
 LICENSE
 .DS_Store
 *.md
-.claude
 .vscode
 .idea
 fly.toml

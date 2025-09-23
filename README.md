@@ -8,6 +8,35 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 
 > 🔒 **Security Note**: This container exposes Claude AI with tools through an HTTP API. Like any AI integration, be mindful of prompt injection when handling untrusted input. Learn more about this important topic from [Simon Willison's articles on prompt injection](https://simonwillison.net/tags/prompt-injection/).
 
+## ✨ Features
+
+### 🌐 **Dual Access Modes**
+- **Web CLI Interface**: Interactive browser-based terminal with real-time streaming
+- **REST API**: Programmatic access for applications and integrations
+
+### 🔐 **Security & Access Control**
+- **Magic Link Authentication**: Passwordless email-based login for web CLI
+- **API Key Protection**: Secure REST API access with configurable API keys
+- **Email Allowlisting**: Control web CLI access by email addresses or domains
+- **JWT Session Management**: Secure cookie-based sessions with expiration
+
+### 📧 **Email Integration**
+- **Resend Integration**: Professional magic link emails via verified domains
+- **Configurable Sender**: Custom "From" address for branded emails
+- **Access Control**: Email/domain allowlists for enterprise security
+
+### 🚀 **Production Ready**
+- **Docker-First**: Optimized multi-stage build for cloud deployment
+- **Health Monitoring**: Built-in health checks and status endpoints
+- **Graceful Shutdown**: Proper signal handling for container orchestration
+- **Comprehensive Logging**: Detailed startup and access control logging
+
+### 🛠️ **Developer Experience**
+- **Real-time Streaming**: Character-by-character CLI response streaming
+- **Multiple Models**: Support for Claude Sonnet 4.0 and Opus 4.1
+- **Backward Compatible**: Preserves existing REST API functionality
+- **Auto-testing**: Comprehensive test script validates full functionality
+
 **🚨 STOP! Only FOUR manual steps required:**
 
 ## 📋 Four-Step Setup (DO THIS YOURSELF)
@@ -140,7 +169,7 @@ docker logs claude-code-sdk-container
 
 # Or manually test:
 # 1. First check health (no auth required) - should return JSON
-curl http://localhost:8080/
+curl http://localhost:8080/health
 
 # 2. Test query endpoint (WORKING EXAMPLE - copy exactly!)
 curl -X POST http://localhost:8080/query \
@@ -168,11 +197,11 @@ curl -H "X-API-Key: your-api-key-here"
 curl -H "Authorization: Bearer your-api-key-here"
 ```
 
-The health check endpoint (`/`) is public and doesn't require authentication.
+The health check endpoint (`/health`) is public and doesn't require authentication.
 
 ### Health Check (No Auth Required)
 ```bash
-GET http://localhost:8080/
+GET http://localhost:8080/health
 ```
 
 Returns:
@@ -239,9 +268,50 @@ docker-compose up -d
 |----------|----------|-------------|
 | `CLAUDE_CODE_OAUTH_TOKEN` | Yes | Your Claude Code OAuth token |
 | `CLAUDE_CODE_SDK_CONTAINER_API_KEY` | No* | API key for endpoint authentication |
+| `RESEND_API_KEY` | No | Resend API key for magic link emails |
+| `EMAIL_FROM` | No | Email sender address (must be verified in Resend) |
+| `ALLOWED_EMAILS` | No | Comma-separated list of allowed email addresses |
+| `ALLOWED_DOMAINS` | No | Comma-separated list of allowed email domains |
+| `SESSION_SECRET` | No | JWT signing secret (generate with: `openssl rand -hex 32`) |
 | `PORT` | No | Server port (default: 8080) |
 
 *If `CLAUDE_CODE_SDK_CONTAINER_API_KEY` is not set, the `/query` endpoint will be publicly accessible.
+
+### Email Access Control
+
+Control who can access the web CLI interface by configuring email allowlists:
+
+```bash
+# Allow specific email addresses
+ALLOWED_EMAILS=user1@company.com,user2@company.com,admin@company.com
+
+# Allow entire domains
+ALLOWED_DOMAINS=company.com,partner.org
+
+# Combine both (user must match either emails OR domains)
+ALLOWED_EMAILS=admin@company.com
+ALLOWED_DOMAINS=company.com,partner.org
+```
+
+**Access Control Behavior:**
+- If **neither** `ALLOWED_EMAILS` nor `ALLOWED_DOMAINS` is set: Any valid email can request access
+- If **either** is configured: Only matching emails/domains can request magic links
+- **Email format validation**: Basic regex validation ensures proper email format
+- **Case insensitive**: `User@Company.com` matches `user@company.com`
+- **Error response**: Unauthorized emails receive `{"error":"Email address not allowed"}`
+
+**Examples:**
+```bash
+# Company-only access
+ALLOWED_DOMAINS=mycompany.com
+
+# Specific users only
+ALLOWED_EMAILS=alice@company.com,bob@partner.org
+
+# Mixed access (admin + entire partner domain)
+ALLOWED_EMAILS=admin@mycompany.com
+ALLOWED_DOMAINS=partner.org
+```
 
 ## Examples
 
@@ -293,7 +363,7 @@ docker ps | grep claude-code
 docker logs claude-code-sdk-container
 
 # 3. Test health endpoint (should work without auth)
-curl http://localhost:8080/
+curl http://localhost:8080/health
 
 # 4. Test with your actual API key
 curl -X POST http://localhost:8080/query \

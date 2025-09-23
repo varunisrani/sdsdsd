@@ -11,17 +11,17 @@ When asked to "run the app", "start the application", or similar:
 2. The correct way to run is: `./test.sh` (it handles Docker automatically)
 3. Or manually: `docker build -t claude-code-sdk .` then `docker run -d -p 8080:8080 --env-file .env claude-code-sdk`
 
-## TWO WAYS TO USE CLAUDE
+## ENDPOINTS AND ACCESS
 
-### 1. 🌐 Web CLI Interface (NEW!)
-Visit http://localhost:8080 in your browser:
-- Enter your email address
-- Receive a magic link via email (using Resend)
-- Click the link to authenticate
-- Use the interactive CLI with real-time streaming responses
+### 🌐 Web CLI Interface
+**URL**: http://localhost:8080/ (root path serves React SPA)
+- Magic link email authentication with allowlist support
+- Real-time WebSocket streaming at /ws
+- JWT session cookies for authentication
 
-### 2. 🔧 REST API (Original)
-Use curl or any HTTP client to query Claude programmatically:
+### 🔧 REST API Endpoints
+**Health Check**: `GET http://localhost:8080/health` (public, no auth)
+**Query Claude**: `POST http://localhost:8080/query` (requires API key if configured)
 
 ```bash
 # Get the API key from the .env file first:
@@ -36,18 +36,30 @@ curl -X POST http://localhost:8080/query -H "Content-Type: application/json" -H 
 
 **DO NOT use multi-line curl commands with backslashes** - they cause issues with the Bash tool.
 
+### 🔐 Email Access Control
+Configure email allowlists in .env:
+```bash
+ALLOWED_EMAILS=user1@company.com,user2@company.com
+ALLOWED_DOMAINS=company.com,partner.org
+```
+- If neither is set: any valid email can access web CLI
+- If either is set: only matching emails/domains allowed
+- Invalid/unauthorized emails get: `{"error":"Email address not allowed"}`
+
 ## Quick Start
 
 Please read the [README.md](./README.md) for complete setup instructions and usage examples.
 
-## What This Does
+## ARCHITECTURE NOTES
 
-- Containerizes the Claude Code SDK for deployment anywhere Docker runs
-- Provides a web-based CLI interface with email magic link authentication
-- Provides REST API endpoints for health checks and querying Claude
-- Handles dual authentication: magic links for web CLI, API keys for REST API
-- Enables Claude AI access via interactive web interface or programmatic HTTP calls
-- Real-time streaming responses via WebSocket for CLI interface
+- **Hono server** with WebSocket support via @hono/node-ws
+- **Multi-stage Docker build**: web frontend + server backend
+- **Dual authentication**: JWT sessions (web) + API keys (REST)
+- **Email allowlist validation** with regex format checking
+- **Static file serving** for React SPA at root path
+- **Health endpoint** moved to `/health` (not root)
+- **Real-time streaming** via WebSocket character-by-character
+- **Session management** for web CLI using Claude SDK's built-in session IDs (REST API remains stateless)
 
 ## Key Files
 

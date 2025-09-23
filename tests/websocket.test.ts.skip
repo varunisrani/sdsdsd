@@ -1,0 +1,199 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { WebSocket } from 'ws';
+import { serve } from '@hono/node-server';
+import { createNodeWebSocket } from '@hono/node-ws';
+import { SignJWT } from 'jose';
+import { app, websocketHandler } from '../server';
+
+// Mock the Claude Code SDK
+vi.mock('@anthropic-ai/claude-code', () => ({
+  query: vi.fn((options) => {
+    // Mock session ID behavior - new ID each time, can resume from previous
+    const sessionId = options.options?.resume || 'session-1';
+    const nextSessionId = sessionId === 'session-1' ? 'session-2' : 'session-3';
+
+    return (async function* () {
+      yield {
+        type: 'system',
+        subtype: 'init',
+        session_id: nextSessionId
+      };
+      yield {
+        type: 'assistant',
+        message: {
+          content: [
+            { type: 'text', text: `Response with session ${nextSessionId}` }
+          ]
+        }
+      };
+    })();
+  })
+}));
+
+describe('WebSocket Session Management', () => {
+  let server: any;
+  let port: number;
+  const SECRET = new TextEncoder().encode('test-secret-key-for-jwt');
+
+  beforeEach(async () => {
+    // Create a real server for WebSocket testing
+    // WebSocket is already on /ws endpoint from server.ts
+    const { injectWebSocket } = createNodeWebSocket({ app });
+
+    server = serve({
+      fetch: app.fetch,
+      port: 0 // Random port
+    });
+
+    injectWebSocket(server);
+
+    // Get the actual port
+    port = server.address().port;
+  });
+
+  afterEach(() => {
+    return new Promise((resolve) => {
+      server.close(resolve);
+    });
+  });
+
+  async function createAuthenticatedWebSocket(): Promise<WebSocket> {
+    // Create a valid JWT
+    const token = await new SignJWT({ sub: 'test@example.com', email: 'test@example.com' })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('1h')
+      .sign(SECRET);
+
+    const ws = new WebSocket(`ws://localhost:${port}/ws`, {
+      headers: {
+        Cookie: `sid=${token}`
+      }
+    });
+
+    await new Promise((resolve, reject) => {
+      ws.once('open', resolve);
+      ws.once('error', reject);
+    });
+
+    return ws;
+  }
+
+  it('should reject connection without authentication', async () => {
+    const ws = new WebSocket(`ws://localhost:${port}/ws`);
+
+    const closePromise = new Promise((resolve) => {
+      ws.on('close', resolve);
+    });
+
+    await closePromise;
+    expect(ws.readyState).toBe(WebSocket.CLOSED);
+  });
+
+  it('should accept connection with valid JWT', async () => {
+    const ws = await createAuthenticatedWebSocket();
+
+    const readyMessage = await new Promise((resolve) => {
+      ws.once('message', (data) => {
+        resolve(JSON.parse(data.toString()));
+      });
+    });
+
+    expect(readyMessage).toEqual({ type: 'ready' });
+    ws.close();
+  });
+
+  it('should maintain session IDs across messages', async () => {
+    const ws = await createAuthenticatedWebSocket();
+
+    // Wait for ready
+    await new Promise((resolve) => {
+      ws.once('message', resolve);
+    });
+
+    // Send first message
+    const firstMessages: any[] = [];
+    const firstPromise = new Promise((resolve) => {
+      const handler = (data: any) => {
+        const msg = JSON.parse(data.toString());
+        firstMessages.push(msg);
+        if (msg.type === 'done') {
+          ws.off('message', handler);
+          resolve(true);
+        }
+      };
+      ws.on('message', handler);
+    });
+
+    ws.send(JSON.stringify({ prompt: 'First message' }));
+    await firstPromise;
+
+    // Check first response has session-2
+    const firstText = firstMessages
+      .filter(m => m.type === 'text')
+      .map(m => m.chunk)
+      .join('');
+    expect(firstText).toContain('session-2');
+
+    // Send second message
+    const secondMessages: any[] = [];
+    const secondPromise = new Promise((resolve) => {
+      const handler = (data: any) => {
+        const msg = JSON.parse(data.toString());
+        secondMessages.push(msg);
+        if (msg.type === 'done') {
+          ws.off('message', handler);
+          resolve(true);
+        }
+      };
+      ws.on('message', handler);
+    });
+
+    ws.send(JSON.stringify({ prompt: 'Second message' }));
+    await secondPromise;
+
+    // Check second response has session-3 (resumed from session-2)
+    const secondText = secondMessages
+      .filter(m => m.type === 'text')
+      .map(m => m.chunk)
+      .join('');
+    expect(secondText).toContain('session-3');
+
+    ws.close();
+  });
+
+  it('should stream response character by character', async () => {
+    const ws = await createAuthenticatedWebSocket();
+
+    // Wait for ready
+    await new Promise((resolve) => {
+      ws.once('message', resolve);
+    });
+
+    const chunks: string[] = [];
+    const streamPromise = new Promise((resolve) => {
+      const handler = (data: any) => {
+        const msg = JSON.parse(data.toString());
+        if (msg.type === 'text') {
+          chunks.push(msg.chunk);
+        } else if (msg.type === 'done') {
+          ws.off('message', handler);
+          resolve(true);
+        }
+      };
+      ws.on('message', handler);
+    });
+
+    ws.send(JSON.stringify({ prompt: 'Test streaming' }));
+    await streamPromise;
+
+    // Should receive individual characters
+    expect(chunks.length).toBeGreaterThan(1);
+
+    // When joined, should form the complete response
+    const fullText = chunks.join('');
+    expect(fullText).toContain('Response with session');
+
+    ws.close();
+  });
+});

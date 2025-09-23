@@ -28,9 +28,13 @@ CURRENT_VERSION=$(grep '"@anthropic-ai/claude-code"' package.json | grep -oE '[0
 echo -e "Current version: ${BLUE}$CURRENT_VERSION${NC}"
 echo ""
 
+# Get container name from directory
+CONTAINER_NAME="claude-code-$(basename "$(pwd)")"
+IMAGE_NAME="claude-code-$(basename "$(pwd)")"
+
 # Check if container exists
-CONTAINER_EXISTS=$(docker ps -a --format "table {{.Names}}" | grep -c claude-code-sdk-container || true)
-CONTAINER_RUNNING=$(docker ps --format "table {{.Names}}" | grep -c claude-code-sdk-container || true)
+CONTAINER_EXISTS=$(docker ps -a --format "table {{.Names}}" | grep -c "$CONTAINER_NAME" || true)
+CONTAINER_RUNNING=$(docker ps --format "table {{.Names}}" | grep -c "$CONTAINER_NAME" || true)
 
 # Update packages
 echo "Fetching latest version from npm..."
@@ -67,7 +71,7 @@ echo ""
 
 # Build new image
 echo "Building new Docker image..."
-docker build -t claude-code-sdk-container . || {
+docker build -t "$IMAGE_NAME" . || {
     echo -e "${RED}❌ Build failed${NC}"
     exit 1
 }
@@ -77,13 +81,13 @@ echo ""
 # Handle existing container
 if [ "$CONTAINER_RUNNING" -eq 1 ]; then
     echo "Stopping running container..."
-    docker stop claude-code-sdk-container
+    docker stop "$CONTAINER_NAME"
     echo -e "${GREEN}✅ Container stopped${NC}"
 fi
 
 if [ "$CONTAINER_EXISTS" -eq 1 ]; then
     echo "Removing old container..."
-    docker rm claude-code-sdk-container
+    docker rm "$CONTAINER_NAME"
     echo -e "${GREEN}✅ Old container removed${NC}"
 fi
 echo ""
@@ -91,11 +95,11 @@ echo ""
 # Start new container
 echo "Starting new container..."
 if [ -f .env ]; then
-    docker run -d --name claude-code-sdk-container -p 8080:8080 --env-file .env claude-code-sdk-container
+    docker run -d --name "$CONTAINER_NAME" -p 8080:8080 --env-file .env "$IMAGE_NAME"
     echo -e "${GREEN}✅ Container started with .env file${NC}"
 else
     echo -e "${YELLOW}⚠️  No .env file found, starting with environment variables${NC}"
-    docker run -d --name claude-code-sdk-container -p 8080:8080 claude-code-sdk-container
+    docker run -d --name "$CONTAINER_NAME" -p 8080:8080 "$IMAGE_NAME"
 fi
 echo ""
 
@@ -109,7 +113,7 @@ HEALTH_RESPONSE=$(curl -s http://localhost:8080/health 2>/dev/null || echo "FAIL
 
 if [[ "$HEALTH_RESPONSE" == "FAILED" ]]; then
     echo -e "${RED}❌ Health check failed${NC}"
-    echo "Check logs with: docker logs claude-code-sdk-container"
+    echo "Check logs with: docker logs $CONTAINER_NAME"
     exit 1
 elif echo "$HEALTH_RESPONSE" | grep -q '"status":"healthy"'; then
     echo -e "${GREEN}✅ Container is healthy${NC}"
@@ -126,6 +130,6 @@ echo -e "${GREEN}🎉 Update complete!${NC}"
 echo -e "Version: ${GREEN}$NEW_VERSION${NC}"
 echo ""
 echo "Container status:"
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep claude-code-sdk-container || echo "Not running"
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep "$CONTAINER_NAME" || echo "Not running"
 echo ""
 echo "Test with: ./test.sh"

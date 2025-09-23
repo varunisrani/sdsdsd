@@ -13,8 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
-    "docker:build": "docker build -t claude-code-sdk .",
-    "docker:run": "docker run -d -p 8080:8080 --env-file .env claude-code-sdk",
+    "docker:build": "docker build -t claude-code-$(basename \"$(pwd)\") .",
+    "docker:run": "docker run -d -p 8080:8080 --env-file .env --name claude-code-$(basename \"$(pwd)\") claude-code-$(basename \"$(pwd)\")",
     "docker:test": "./test.sh"
   },
   "dependencies": {

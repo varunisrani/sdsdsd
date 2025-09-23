@@ -32,15 +32,19 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-if ! docker images | grep -q "claude-code-sdk"; then
+# Get container name from directory
+CONTAINER_NAME="claude-code-$(basename "$(pwd)")"
+IMAGE_NAME="claude-code-$(basename "$(pwd)")"
+
+if ! docker images | grep -q "$IMAGE_NAME"; then
     echo "Building Docker image..."
-    docker build -t claude-code-sdk . || exit 1
+    docker build -t "$IMAGE_NAME" . || exit 1
 fi
 
-if ! docker ps | grep -q claude-code-sdk-container; then
-    docker ps -a | grep -q claude-code-sdk-container && docker rm claude-code-sdk-container > /dev/null 2>&1
+if ! docker ps | grep -q "$CONTAINER_NAME"; then
+    docker ps -a | grep -q "$CONTAINER_NAME" && docker rm "$CONTAINER_NAME" > /dev/null 2>&1
     echo "Starting container..."
-    docker run -d --name claude-code-sdk-container -p 8080:8080 --env-file .env claude-code-sdk || exit 1
+    docker run -d --name "$CONTAINER_NAME" -p 8080:8080 --env-file .env "$IMAGE_NAME" || exit 1
     sleep 3
 fi
 

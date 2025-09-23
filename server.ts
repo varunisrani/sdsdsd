@@ -32,8 +32,8 @@ if (process.env.NODE_ENV !== 'test') {
     console.error("\n❌ ERROR: This application must be run in Docker!");
     console.error("\n📋 Quick Start:");
     console.error("1. Ensure Docker is running");
-    console.error("2. Build the image: docker build -t claude-code-sdk .");
-    console.error("3. Run the container: docker run -d -p 8080:8080 --env-file .env claude-code-sdk");
+    console.error("2. Build the image: docker build -t claude-code-$(basename \"$(pwd)\") .");
+    console.error("3. Run the container: docker run -d -p 8080:8080 --env-file .env --name claude-code-$(basename \"$(pwd)\") claude-code-$(basename \"$(pwd)\")");
     console.error("4. Test it: ./test.sh\n");
     console.error("Or simply run: ./test.sh (it will start Docker if needed)\n");
     console.error("To bypass this check (not recommended): ALLOW_LOCAL=true tsx server.ts\n");
@@ -233,6 +233,7 @@ app.use('/auth/github', githubAuth({
   client_id: process.env.GITHUB_CLIENT_ID!,
   client_secret: process.env.GITHUB_CLIENT_SECRET!,
   scope: ['read:user', 'user:email'],
+  oauthApp: true,
 }));
 
 // GitHub OAuth callback

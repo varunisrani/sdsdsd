@@ -9,7 +9,9 @@ This repository provides a Dockerized server that wraps the Claude Code SDK, off
 When asked to "run the app", "start the application", or similar:
 1. ALWAYS use Docker, NEVER use `tsx server.ts`, `node server.ts`, or `npm start`
 2. The correct way to run is: `./test.sh` (it handles Docker automatically)
-3. Or manually: `docker build -t claude-code-sdk .` then `docker run -d -p 8080:8080 --env-file .env claude-code-sdk`
+3. Or manually: `docker build -t claude-code-$(basename "$(pwd)") .` then `docker run -d -p 8080:8080 --env-file .env --name claude-code-$(basename "$(pwd)") claude-code-$(basename "$(pwd)")`
+
+**Container Naming**: Containers automatically get unique names based on the directory name (e.g., `claude-code-my-project`) to prevent conflicts across multiple deployments.
 
 ## ENDPOINTS AND ACCESS
 
@@ -25,17 +27,23 @@ When asked to "run the app", "start the application", or similar:
 **GitHub OAuth**: `GET http://localhost:8080/auth/github` (web CLI authentication)
 
 ```bash
-# Get the API key from the .env file first:
-API_KEY=$(grep CLAUDE_CODE_SDK_CONTAINER_API_KEY .env | cut -d '=' -f2)
+# CORRECT - Use separate commands, NOT command substitution in Bash tool:
 
-# CORRECT - Single line without backslashes:
-curl -X POST http://localhost:8080/query -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" -d '{"prompt": "Your question here"}'
+# First, get the API key:
+grep CLAUDE_CODE_SDK_CONTAINER_API_KEY .env | cut -d '=' -f2
+
+# Then use the actual key value in curl (replace YOUR_ACTUAL_KEY):
+curl -X POST http://localhost:8080/query -H "Content-Type: application/json" -H "X-API-Key: YOUR_ACTUAL_KEY" -d '{"prompt": "Your question here"}'
 
 # To extract just the response text:
-curl -X POST http://localhost:8080/query -H "Content-Type: application/json" -H "X-API-Key: $API_KEY" -d '{"prompt": "Your question here"}' -s | jq -r '.response'
+curl -X POST http://localhost:8080/query -H "Content-Type: application/json" -H "X-API-Key: YOUR_ACTUAL_KEY" -d '{"prompt": "Your question here"}' -s | jq -r '.response'
 ```
 
-**DO NOT use multi-line curl commands with backslashes** - they cause issues with the Bash tool.
+**IMPORTANT BASH TOOL RULES:**
+- **DO NOT use command substitution** like `$(command)` or backticks in Bash tool
+- **DO NOT use multi-line commands** with backslashes
+- **Use separate Bash calls** for each command
+- **Always use single quotes** around JSON to prevent shell interpretation
 
 ### 🔐 GitHub Access Control
 **REQUIRED:** Configure GitHub allowlists in .env (container will not start without this):

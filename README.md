@@ -61,7 +61,7 @@ COPY IT NOW - you can't get it again!
 
 ### Step 3: Create GitHub OAuth App
 
-Go to [GitHub Settings > Developer settings > OAuth Apps](https://github.com/settings/applications/new) and create a new OAuth App:
+Go to [GitHub Settings > Developer settings > OAuth Apps](https://github.com/settings/applications/new){:target="_blank"} and create a new OAuth App:
 
 - **Application name**: `Claude CLI Container` (or your preferred name)
 - **Homepage URL**: `http://localhost:8080`
@@ -177,16 +177,16 @@ cd claude-code-sdk-container
 cp .env.example .env
 # Edit .env and add your actual tokens (without quotes)
 
-# Build the Docker image
-docker build -t claude-code-sdk-container .
+# Build the Docker image (uses directory name for uniqueness)
+docker build -t claude-code-$(basename "$(pwd)") .
 
 # Run the container (use --env-file for .env file)
-docker run -d --name claude-code-sdk-container -p 8080:8080 --env-file .env claude-code-sdk-container
+docker run -d --name claude-code-$(basename "$(pwd)") -p 8080:8080 --env-file .env claude-code-$(basename "$(pwd)")
 
 # IMPORTANT: Check if container is actually running!
-docker ps | grep claude-code-sdk-container
+docker ps | grep claude-code-$(basename "$(pwd)")
 # If not visible, check logs:
-docker logs claude-code-sdk-container
+docker logs claude-code-$(basename "$(pwd)")
 ```
 
 ### Test It's Working
@@ -280,7 +280,8 @@ Create `docker-compose.yml`:
 version: '3.8'
 services:
   claude-api:
-    image: claude-code-sdk-container
+    image: claude-code-$(basename "$(pwd)")
+    container_name: claude-code-$(basename "$(pwd)")
     ports:
       - "8080:8080"
     environment:
@@ -345,6 +346,8 @@ ALLOWED_GITHUB_USERS=admin
 ALLOWED_GITHUB_ORG=mycompany
 ```
 
+**Container Naming**: Each deployment automatically gets a unique container name based on the directory name (e.g., `claude-code-my-project`). This allows multiple deployments without conflicts.
+
 **Note**: For production use with organization membership, consider implementing proper GitHub API calls to check organization membership instead of relying on the public company field.
 
 ## Examples
@@ -394,7 +397,7 @@ curl -X POST http://localhost:8080/query \
 docker ps | grep claude-code
 
 # 2. Check container logs
-docker logs claude-code-sdk-container
+docker logs claude-code-$(basename "$(pwd)")
 
 # 3. Test health endpoint (should work without auth)
 curl http://localhost:8080/health
@@ -410,13 +413,13 @@ curl -X POST http://localhost:8080/query \
 
 | Issue | Solution |
 |-------|----------|
-| **Container exits immediately** | Check logs: `docker logs claude-code-sdk-container`. Usually bad OAuth token |
-| **"Unauthorized - Invalid or missing API key"** | Your API key doesn't match. Check: `docker exec claude-code-sdk-container env | grep CLAUDE_CODE_SDK_CONTAINER` |
-| **Connection refused on port 8080** | Container not running. Check: `docker ps`. Restart: `docker start claude-code-sdk-container` |
+| **Container exits immediately** | Check logs: `docker logs claude-code-$(basename "$(pwd)")`. Usually bad OAuth token |
+| **"Unauthorized - Invalid or missing API key"** | Your API key doesn't match. Check: `docker exec claude-code-$(basename "$(pwd)") env | grep CLAUDE_CODE_SDK_CONTAINER` |
+| **Connection refused on port 8080** | Container not running. Check: `docker ps`. Restart: `docker start claude-code-$(basename "$(pwd)")` |
 | **Quotes in environment variables** | Remove ALL quotes from .env file. Docker doesn't strip them! |
 | **"unhealthy" status** | OAuth token is wrong. Get correct one with: `claude setup-token` |
 | **Works locally but not from other container** | Use `host.docker.internal:8080` instead of `localhost:8080` |
-| **Changes to .env not working** | Must restart container: `docker restart claude-code-sdk-container` |
+| **Changes to .env not working** | Must restart container: `docker restart claude-code-$(basename "$(pwd)")` |
 
 ## Updating Claude Code SDK
 

@@ -61,7 +61,9 @@ COPY IT NOW - you can't get it again!
 
 ### Step 3: Create GitHub App
 
-Go to [GitHub Settings > Developer settings > GitHub Apps](https://github.com/settings/apps/new){:target="_blank"} and create a new GitHub App:
+Go to [GitHub Settings > Developer settings > GitHub Apps](https://github.com/settings/apps/new) and create a new GitHub App:
+
+> 💡 **Note**: You can reuse the same GitHub App across multiple claude-code-sdk-container deployments. Just add additional callback URLs for each deployment (e.g., `http://localhost:8081/auth/github`, `http://your-domain.com/auth/github`, etc.) in your GitHub App settings.
 
 - **GitHub App name**: `Claude CLI Container` (or your preferred name)
 - **Homepage URL**: `http://localhost:8080`

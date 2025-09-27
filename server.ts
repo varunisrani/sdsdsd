@@ -229,12 +229,31 @@ app.post("/query", async (c) => {
 });
 
 // GitHub App configuration and setup
-app.use('/auth/github', githubAuth({
-  client_id: process.env.GITHUB_CLIENT_ID!,
-  client_secret: process.env.GITHUB_CLIENT_SECRET!,
-  scope: ['read:user', 'user:email'],
-  // oauthApp: false is default for GitHub Apps
-}));
+app.use('/auth/github', (c, next) => {
+  // Detect protocol from standard headers used by proxies/load balancers
+  const xForwardedProto = c.req.header('x-forwarded-proto');
+  const xForwardedSsl = c.req.header('x-forwarded-ssl');
+  const xUrlScheme = c.req.header('x-url-scheme');
+
+  // Use HTTPS if any common proxy header indicates it
+  const protocol = (
+    xForwardedProto === 'https' ||
+    xForwardedSsl === 'on' ||
+    xUrlScheme === 'https' ||
+    process.env.NODE_ENV === 'production'
+  ) ? 'https' : 'http';
+
+  const host = c.req.header('host') || 'localhost:8080';
+  const redirectUri = `${protocol}://${host}/auth/github`;
+
+  return githubAuth({
+    client_id: process.env.GITHUB_CLIENT_ID!,
+    client_secret: process.env.GITHUB_CLIENT_SECRET!,
+    scope: ['read:user', 'user:email'],
+    redirect_uri: redirectUri,
+    // oauthApp: false is default for GitHub Apps
+  })(c, next);
+});
 
 // GitHub OAuth callback
 app.get('/auth/github', async (c) => {

@@ -193,7 +193,7 @@ app.post("/query", async (c) => {
 
     // Build options for REST API with multi-agent support
     const queryOptions: any = {
-      model: options.model || 'claude-sonnet-4-0',
+      model: options.model || 'claude-sonnet-4-5',
       agents: {
         canadian_agent: {
           description: "Provides a friendly Canadian perspective on the user's request",
@@ -379,7 +379,7 @@ export const websocketHandler = (c: any) => ({
 
       // Build query options
       const queryOptions: any = {
-        model: 'claude-sonnet-4-0',
+        model: 'claude-sonnet-4-5',
         cwd: "/app",
         env: process.env,
       };

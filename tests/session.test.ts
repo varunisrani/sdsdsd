@@ -64,7 +64,7 @@ describe('Session ID Management', () => {
     let currentSessionId: string | undefined;
 
     // First message
-    const options1: any = { model: 'claude-sonnet-4-0' };
+    const options1: any = { model: 'claude-sonnet-4-5' };
     if (currentSessionId) options1.resume = currentSessionId;
 
     const response1 = mockQuery({ prompt: 'First', options: options1 });
@@ -76,7 +76,7 @@ describe('Session ID Management', () => {
     expect(currentSessionId).toBe('session-1');
 
     // Second message - should resume with session-1
-    const options2: any = { model: 'claude-sonnet-4-0' };
+    const options2: any = { model: 'claude-sonnet-4-5' };
     if (currentSessionId) options2.resume = currentSessionId;
 
     const response2 = mockQuery({ prompt: 'Second', options: options2 });
@@ -88,7 +88,7 @@ describe('Session ID Management', () => {
     expect(currentSessionId).toBe('session-2');
 
     // Third message - should resume with session-2
-    const options3: any = { model: 'claude-sonnet-4-0' };
+    const options3: any = { model: 'claude-sonnet-4-5' };
     if (currentSessionId) options3.resume = currentSessionId;
 
     const response3 = mockQuery({ prompt: 'Third', options: options3 });

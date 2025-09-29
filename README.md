@@ -35,7 +35,7 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 
 ### 🛠️ **Developer Experience**
 - **Real-time Streaming**: Character-by-character CLI response streaming
-- **Multiple Models**: Support for Claude Sonnet 4.0 and Opus 4.1
+- **Multiple Models**: Support for Claude Sonnet 4.5 and Opus 4.1
 - **Multi-Agent System**: Built-in example with Canadian 🍁 and Australian 🇦🇺 agents
 - **Backward Compatible**: Preserves existing REST API functionality
 - **Auto-testing**: Comprehensive test script validates full functionality
@@ -277,7 +277,7 @@ X-API-Key: your-api-key-here
 {
   "prompt": "Your question here",
   "options": {
-    "model": "claude-sonnet-4-0"  // optional
+    "model": "claude-sonnet-4-5"  // optional
   }
 }
 ```
@@ -425,7 +425,7 @@ curl -X POST http://localhost:8080/query \
   -d '{
     "prompt": "What is the meaning of life?",
     "options": {
-      "model": "claude-sonnet-4-0"
+      "model": "claude-sonnet-4-5"
     }
   }' | jq .response
 ```

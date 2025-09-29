@@ -191,14 +191,37 @@ app.post("/query", async (c) => {
     const messages = [];
     let responseText = "";
 
-    // Build options for REST API
-    const queryOptions = {
+    // Build options for REST API with multi-agent support
+    const queryOptions: any = {
       model: options.model || 'claude-sonnet-4-0',
+      agents: {
+        canadian_agent: {
+          description: "Provides a friendly Canadian perspective on the user's request",
+          prompt: `You are a cheerful Canadian assistant, eh! Speak with Canadian character using expressions like "eh", "sorry", "beauty", "bud".
+Be polite, friendly, optimistic, and inclusive. Give helpful advice with Canadian warmth and positivity.
+Keep your responses concise (2-3 sentences) and always make it clear you're the Canadian perspective.`,
+          model: 'sonnet' as const
+        },
+        australian_agent: {
+          description: "Provides a laid-back Australian perspective on the user's request",
+          prompt: `You are a relaxed Australian assistant, mate! Speak with Aussie character using expressions like "mate", "no worries", "she'll be right", "fair dinkum".
+Be casual, easy-going, practical, and down-to-earth. Give straightforward advice with Australian laid-back charm.
+Keep your responses concise (2-3 sentences) and always make it clear you're the Australian perspective.`,
+          model: 'sonnet' as const
+        }
+      }
     };
 
-    // Use the Claude Code SDK for simple question/answer
+    // Wrap user prompt to coordinate agent discussion
+    const coordinatedPrompt = `The user has sent this request: "${prompt}"
+
+Please coordinate with the canadian_agent and australian_agent subagents to discuss this request and provide their perspectives. Use the Task tool to ask each agent for their viewpoint, then synthesize their discussion into a helpful response for the user.
+
+Format the response to show each agent's perspective clearly, then provide a summary.`;
+
+    // Use the Claude Agent SDK for multi-agent discussion
     const response = query({
-      prompt: prompt,
+      prompt: coordinatedPrompt,
       options: queryOptions,
     });
 

@@ -1,8 +1,10 @@
 # Claude Agent SDK Container
 
-**Deploy Claude Agent SDK to your favorite cloud provider and use it just like Claude Code on your desktop!**
+**Deploy Claude Agent SDK to your favorite cloud provider with built-in multi-agent collaboration!**
 
 This repository containerizes the Claude Agent SDK, allowing you to run it with your Anthropic subscription on AWS, Google Cloud, Azure, or any cloud platform that supports Docker. Once deployed, you can interact with Claude through a REST API from any application or service!
+
+**🤖 Multi-Agent Feature:** The `/query` endpoint includes a built-in example of multi-agent collaboration where a Canadian 🍁 and Australian 🇦🇺 agent discuss user requests and provide their unique perspectives. This demonstrates how to use the Claude Agent SDK's Task tool for subagent delegation. [See examples below](#examples) or customize the agents in `server.ts`.
 
 Since you're here, we expect you already have Claude Code installed and are loving it as much as we are. But if you haven't installed it yet, you can get started here: [Claude Code Installation Guide](https://docs.claude.com/en/docs/claude-code/overview)
 
@@ -34,6 +36,7 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 ### 🛠️ **Developer Experience**
 - **Real-time Streaming**: Character-by-character CLI response streaming
 - **Multiple Models**: Support for Claude Sonnet 4.0 and Opus 4.1
+- **Multi-Agent System**: Built-in example with Canadian 🍁 and Australian 🇦🇺 agents
 - **Backward Compatible**: Preserves existing REST API functionality
 - **Auto-testing**: Comprehensive test script validates full functionality
 
@@ -133,7 +136,19 @@ Please build the Docker container, run it, and verify it's working by testing th
 - ✅ Run the container with your .env file
 - ✅ Test both health and query endpoints
 - ✅ Show you working curl commands to use
+- ✅ Demonstrate the multi-agent system in action
 - ✅ Fix any issues that come up
+
+### Try the Multi-Agent System:
+Once running, test the built-in multi-agent collaboration:
+```bash
+curl -X POST http://localhost:8080/query \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key-here" \
+  -d '{"prompt": "Help me plan a vacation"}'
+```
+
+You'll see the Canadian 🍁 and Australian 🇦🇺 agents discuss your request and provide their unique perspectives!
 
 ---
 
@@ -359,6 +374,25 @@ ALLOWED_GITHUB_ORG=mycompany
 
 ## Examples
 
+### Multi-Agent Discussion (Built-in Feature)
+
+The `/query` endpoint includes a built-in multi-agent system where two specialized agents discuss user requests:
+
+- **Canadian Agent** 🍁: Friendly, polite, optimistic perspective with Canadian warmth
+- **Australian Agent** 🇦🇺: Laid-back, practical, easy-going perspective with Aussie charm
+
+The coordinator agent uses Claude's Task tool to delegate to each subagent, gather their perspectives, and synthesize a comprehensive response.
+
+```bash
+curl -X POST http://localhost:8080/query \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key-here" \
+  -d '{"prompt": "Help me plan a vacation"}'
+```
+
+**Example Response:**
+The agents will discuss the request, each providing their unique cultural perspective, followed by a synthesized recommendation combining both viewpoints.
+
 ### Python
 ```python
 import requests
@@ -395,6 +429,52 @@ curl -X POST http://localhost:8080/query \
     }
   }' | jq .response
 ```
+
+### Customizing the Multi-Agent System
+
+The multi-agent implementation is in `server.ts` (lines 197-220). To customize:
+
+1. **Modify agent personalities**: Edit the `prompt` field in each agent definition
+2. **Add more agents**: Add new entries to the `agents` object
+3. **Change coordination strategy**: Modify the `coordinatedPrompt` to change how agents collaborate
+4. **Disable multi-agent**: Remove the `agents` and `coordinatedPrompt` for single-agent responses
+
+**Example: Adding Your Own Agent**
+
+Edit `server.ts` and add to the `agents` object:
+```typescript
+agents: {
+  canadian_agent: { /* existing */ },
+  australian_agent: { /* existing */ },
+  your_custom_agent: {
+    description: "Provides a [personality] perspective on the user's request",
+    prompt: `You are a [personality description]. Use expressions like "[phrase1]", "[phrase2]".
+Be [characteristics]. Give [type of advice].
+Keep your responses concise (2-3 sentences) and always make it clear you're the [name] perspective.`,
+    model: 'sonnet' as const
+  }
+}
+```
+
+Then update the `coordinatedPrompt` to include your new agent:
+```typescript
+const coordinatedPrompt = `The user has sent this request: "${prompt}"
+
+Please coordinate with the canadian_agent, australian_agent, and your_custom_agent subagents...`;
+```
+
+**How It Works:**
+- The coordinator agent receives the user's query
+- Uses Claude's Task tool to delegate to each subagent
+- Each subagent provides their unique perspective
+- Coordinator synthesizes all responses into a comprehensive answer
+
+**Example Personalities to Try:**
+- 🇬🇧 British agent (proper, witty, tea-enthusiast)
+- 🇩🇪 German agent (efficient, precise, engineering-focused)
+- 🇮🇹 Italian agent (passionate, expressive, food-oriented)
+- 🇯🇵 Japanese agent (respectful, detail-oriented, harmony-focused)
+- 🤠 Texan agent (bold, entrepreneurial, BBQ-loving)
 
 ## Troubleshooting
 

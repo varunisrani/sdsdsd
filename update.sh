@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Update script for Claude Code SDK Container
+# Update script for Claude Agent SDK Container
 # Updates the SDK to latest version and rebuilds container
 
 set -e
 
-echo "🔄 Claude Code SDK Container Update Script"
+echo "🔄 Claude Agent SDK Container Update Script"
 echo "==========================================="
 echo ""
 
@@ -23,8 +23,8 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 # Check current version
-echo "Checking current Claude Code SDK version..."
-CURRENT_VERSION=$(grep '"@anthropic-ai/claude-code"' package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+echo "Checking current Claude Agent SDK version..."
+CURRENT_VERSION=$(grep '"@anthropic-ai/claude-agent-sdk"' package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
 echo -e "Current version: ${BLUE}$CURRENT_VERSION${NC}"
 echo ""
 
@@ -38,7 +38,7 @@ CONTAINER_RUNNING=$(docker ps --format "table {{.Names}}" | grep -c "$CONTAINER_
 
 # Update packages
 echo "Fetching latest version from npm..."
-LATEST_VERSION=$(npm view @anthropic-ai/claude-code version 2>/dev/null || echo "")
+LATEST_VERSION=$(npm view @anthropic-ai/claude-agent-sdk version 2>/dev/null || echo "")
 
 if [ -z "$LATEST_VERSION" ]; then
     echo -e "${RED}❌ Could not fetch latest version from npm${NC}"
@@ -64,8 +64,8 @@ else
 fi
 
 # Update package
-echo "Updating Claude Code SDK..."
-npm update @anthropic-ai/claude-code
+echo "Updating Claude Agent SDK..."
+npm update @anthropic-ai/claude-agent-sdk
 echo -e "${GREEN}✅ Package updated${NC}"
 echo ""
 
@@ -124,7 +124,7 @@ fi
 echo ""
 
 # Show final status
-NEW_VERSION=$(grep '"@anthropic-ai/claude-code"' package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+NEW_VERSION=$(grep '"@anthropic-ai/claude-agent-sdk"' package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
 echo "==========================================="
 echo -e "${GREEN}🎉 Update complete!${NC}"
 echo -e "Version: ${GREEN}$NEW_VERSION${NC}"

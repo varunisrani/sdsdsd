@@ -1,6 +1,6 @@
-# Claude Code SDK Container
+# Claude Agent SDK Container
 
-This repository provides a Dockerized server that wraps the Claude Code SDK, offering both a web-based CLI interface and REST API endpoints for interacting with Claude AI.
+This repository provides a Dockerized server that wraps the Claude Agent SDK, offering both a web-based CLI interface and REST API endpoints for interacting with Claude AI.
 
 ## IMPORTANT: HOW TO RUN THIS APPLICATION
 
@@ -30,7 +30,7 @@ When asked to "run the app", "start the application", or similar:
 # CORRECT - Use separate commands, NOT command substitution in Bash tool:
 
 # First, get the API key:
-grep CLAUDE_CODE_SDK_CONTAINER_API_KEY .env | cut -d '=' -f2
+grep CLAUDE_AGENT_SDK_CONTAINER_API_KEY .env | cut -d '=' -f2
 
 # Then use the actual key value in curl (replace YOUR_ACTUAL_KEY):
 curl -X POST http://localhost:8080/query -H "Content-Type: application/json" -H "X-API-Key: YOUR_ACTUAL_KEY" -d '{"prompt": "Your question here"}'

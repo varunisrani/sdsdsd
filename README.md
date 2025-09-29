@@ -1,8 +1,8 @@
-# Claude Code SDK Container
+# Claude Agent SDK Container
 
-**Deploy Claude Code to your favorite cloud provider and use it just like Claude Code on your desktop!**
+**Deploy Claude Agent SDK to your favorite cloud provider and use it just like Claude Code on your desktop!**
 
-This repository containerizes Claude Code, allowing you to run it with your Anthropic subscription on AWS, Google Cloud, Azure, or any cloud platform that supports Docker. Once deployed, you can interact with Claude Code through a REST API from any application or service!
+This repository containerizes the Claude Agent SDK, allowing you to run it with your Anthropic subscription on AWS, Google Cloud, Azure, or any cloud platform that supports Docker. Once deployed, you can interact with Claude through a REST API from any application or service!
 
 Since you're here, we expect you already have Claude Code installed and are loving it as much as we are. But if you haven't installed it yet, you can get started here: [Claude Code Installation Guide](https://docs.claude.com/en/docs/claude-code/overview)
 
@@ -43,8 +43,8 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 
 ### Step 1: Clone This Repo
 ```bash
-git clone https://github.com/receipting/claude-code-sdk-container
-cd claude-code-sdk-container
+git clone https://github.com/receipting/claude-agent-sdk-container
+cd claude-agent-sdk-container
 ```
 
 ### Step 2: Get Your Claude OAuth Token
@@ -63,7 +63,7 @@ COPY IT NOW - you can't get it again!
 
 Go to [GitHub Settings > Developer settings > GitHub Apps](https://github.com/settings/apps/new) and create a new GitHub App:
 
-> 💡 **Note**: You can reuse the same GitHub App across multiple claude-code-sdk-container deployments. Just add additional callback URLs for each deployment (e.g., `http://localhost:8081/auth/github`, `http://your-domain.com/auth/github`, etc.) in your GitHub App settings.
+> 💡 **Note**: You can reuse the same GitHub App across multiple claude-agent-sdk-container deployments. Just add additional callback URLs for each deployment (e.g., `http://localhost:8081/auth/github`, `http://your-domain.com/auth/github`, etc.) in your GitHub App settings.
 
 - **GitHub App name**: `Claude CLI Container` (or your preferred name)
 - **Homepage URL**: `http://localhost:8080`
@@ -81,7 +81,7 @@ After creating the app, copy the **Client ID** and generate a **Client Secret** 
 ```bash
 cat > .env << 'EOF'
 CLAUDE_CODE_OAUTH_TOKEN=sk-ant-oat01-YOUR-TOKEN-HERE
-CLAUDE_CODE_SDK_CONTAINER_API_KEY=pick-any-random-string-as-your-api-key
+CLAUDE_AGENT_SDK_CONTAINER_API_KEY=pick-any-random-string-as-your-api-key
 
 # GitHub App Configuration (Required for web CLI)
 GITHUB_CLIENT_ID=your_github_app_client_id
@@ -95,7 +95,7 @@ EOF
 
 **Required:**
 - **CLAUDE_CODE_OAUTH_TOKEN**: Your Claude Code OAuth token
-- **CLAUDE_CODE_SDK_CONTAINER_API_KEY**: API key for REST endpoint protection
+- **CLAUDE_AGENT_SDK_CONTAINER_API_KEY**: API key for REST endpoint protection
 - **GITHUB_CLIENT_ID**: GitHub OAuth App Client ID
 - **GITHUB_CLIENT_SECRET**: GitHub OAuth App Client Secret
 
@@ -306,7 +306,7 @@ docker-compose up -d
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `CLAUDE_CODE_OAUTH_TOKEN` | Yes | Your Claude Code OAuth token |
-| `CLAUDE_CODE_SDK_CONTAINER_API_KEY` | No* | API key for endpoint authentication |
+| `CLAUDE_AGENT_SDK_CONTAINER_API_KEY` | No* | API key for endpoint authentication |
 | `GITHUB_CLIENT_ID` | Yes** | GitHub App Client ID |
 | `GITHUB_CLIENT_SECRET` | Yes** | GitHub App Client Secret |
 | `ALLOWED_GITHUB_USERS` | Yes*** | Comma-separated list of allowed GitHub usernames |
@@ -314,7 +314,7 @@ docker-compose up -d
 | `SESSION_SECRET` | No | JWT signing secret (generate with: `openssl rand -hex 32`) |
 | `PORT` | No | Server port (default: 8080) |
 
-*If `CLAUDE_CODE_SDK_CONTAINER_API_KEY` is not set, the `/query` endpoint will be publicly accessible.
+*If `CLAUDE_AGENT_SDK_CONTAINER_API_KEY` is not set, the `/query` endpoint will be publicly accessible.
 **Required only for web CLI access. REST API works without GitHub App authentication.
 ***At least one of `ALLOWED_GITHUB_USERS` or `ALLOWED_GITHUB_ORG` must be set for security.
 
@@ -421,16 +421,16 @@ curl -X POST http://localhost:8080/query \
 | Issue | Solution |
 |-------|----------|
 | **Container exits immediately** | Check logs: `docker logs claude-code-$(basename "$(pwd)")`. Usually bad OAuth token |
-| **"Unauthorized - Invalid or missing API key"** | Your API key doesn't match. Check: `docker exec claude-code-$(basename "$(pwd)") env | grep CLAUDE_CODE_SDK_CONTAINER` |
+| **"Unauthorized - Invalid or missing API key"** | Your API key doesn't match. Check: `docker exec claude-code-$(basename "$(pwd)") env | grep CLAUDE_AGENT_SDK_CONTAINER` |
 | **Connection refused on port 8080** | Container not running. Check: `docker ps`. Restart: `docker start claude-code-$(basename "$(pwd)")` |
 | **Quotes in environment variables** | Remove ALL quotes from .env file. Docker doesn't strip them! |
 | **"unhealthy" status** | OAuth token is wrong. Get correct one with: `claude setup-token` |
 | **Works locally but not from other container** | Use `host.docker.internal:8080` instead of `localhost:8080` |
 | **Changes to .env not working** | Must restart container: `docker restart claude-code-$(basename "$(pwd)")` |
 
-## Updating Claude Code SDK
+## Updating Claude Agent SDK
 
-The container includes a specific version of the Claude Code SDK. To update to the latest version:
+The container includes a specific version of the Claude Agent SDK. To update to the latest version:
 
 ```bash
 # Run the update script
@@ -450,7 +450,7 @@ The update script handles everything automatically, including graceful container
 - **Base Image**: Node.js 22 Alpine (optimized for size)
 - **Container Size**: ~331MB
 - **Memory Usage**: ~256MB
-- **Supported Models**: All Claude Code SDK models
+- **Supported Models**: All Claude Agent SDK models
 - **SDK Version**: Locked at build time (use `./update.sh` to update)
 
 ## License

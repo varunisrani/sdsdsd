@@ -20,7 +20,7 @@ WORKDIR /app
 
 # Install runtime dependencies
 RUN apk --no-cache add tini bash git && \
-    npm install -g tsx @anthropic-ai/claude-code
+    npm install -g tsx @anthropic-ai/claude-agent-sdk
 
 # Create non-root user for security
 RUN adduser -u 10001 -D -s /bin/bash appuser

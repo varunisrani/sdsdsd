@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Test script for Claude Code SDK Container
+# Test script for Claude Agent SDK Container
 # This helps verify everything is working correctly
 
 set -e
 
-echo "Testing Claude Code SDK Container..."
+echo "Testing Claude Agent SDK Container..."
 
 # Check if .env exists
 if [ ! -f .env ]; then
@@ -63,10 +63,10 @@ else
 fi
 
 echo "Testing query endpoint..."
-if [ -n "$CLAUDE_CODE_SDK_CONTAINER_API_KEY" ]; then
+if [ -n "$CLAUDE_AGENT_SDK_CONTAINER_API_KEY" ]; then
     QUERY_RESPONSE=$(curl -s -X POST http://localhost:8080/query \
         -H "Content-Type: application/json" \
-        -H "X-API-Key: $CLAUDE_CODE_SDK_CONTAINER_API_KEY" \
+        -H "X-API-Key: $CLAUDE_AGENT_SDK_CONTAINER_API_KEY" \
         -d '{"prompt": "Say hello in 3 words"}' 2>/dev/null || echo "FAILED")
 else
     QUERY_RESPONSE=$(curl -s -X POST http://localhost:8080/query \

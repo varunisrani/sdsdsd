@@ -5,7 +5,7 @@ import { createNodeWebSocket } from "@hono/node-ws";
 import { getCookie, setCookie } from "hono/cookie";
 import { SignJWT, jwtVerify } from "jose";
 import { githubAuth } from "@hono/oauth-providers/github";
-import { query, type CanUseTool } from "@anthropic-ai/claude-code";
+import { query, type CanUseTool } from "@anthropic-ai/claude-agent-sdk";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -100,7 +100,7 @@ async function setSessionCookie(c: any, githubUser: any) {
 
 // API key auth helper
 function checkApiAuth(c: any): boolean {
-  const configuredKey = process.env.CLAUDE_CODE_SDK_CONTAINER_API_KEY;
+  const configuredKey = process.env.CLAUDE_AGENT_SDK_CONTAINER_API_KEY;
   if (!configuredKey) return true; // No key = public access
 
   const apiKey = c.req.header('x-api-key') || c.req.header('authorization')?.replace('Bearer ', '');
@@ -131,10 +131,10 @@ const sessionIds = new Map<any, string>();
 // Startup logging (skip in test mode)
 if (process.env.NODE_ENV !== 'test') {
   const isDocker = fs.existsSync('/.dockerenv') || process.env.container === 'docker';
-  console.log("Claude Code SDK Container starting...");
+  console.log("Claude Agent SDK Container starting...");
   console.log("Environment:", isDocker ? "Docker" : "Local");
   console.log("Claude token:", !!process.env.CLAUDE_CODE_OAUTH_TOKEN ? "✓" : "✗");
-  console.log("API protection:", !!process.env.CLAUDE_CODE_SDK_CONTAINER_API_KEY ? "✓" : "✗");
+  console.log("API protection:", !!process.env.CLAUDE_AGENT_SDK_CONTAINER_API_KEY ? "✓" : "✗");
   console.log("GitHub OAuth:", !!process.env.GITHUB_CLIENT_ID && !!process.env.GITHUB_CLIENT_SECRET ? "✓" : "✗");
   if (allowedGithubUsers.length > 0) console.log("GitHub users allowlist:", allowedGithubUsers.length, "users");
   if (allowedGithubOrg) console.log("GitHub org restriction:", allowedGithubOrg);
@@ -149,7 +149,7 @@ app.get("/health", (c) => {
     status: hasToken && sdkLoaded ? "healthy" : "unhealthy",
     hasToken,
     sdkLoaded,
-    message: "Claude Code SDK API with CLI",
+    message: "Claude Agent SDK API with CLI",
     timestamp: new Date().toISOString(),
   });
 });

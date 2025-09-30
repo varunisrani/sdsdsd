@@ -469,9 +469,10 @@ app.notFound(async (c) => {
 if (process.env.NODE_ENV !== 'test') {
   const server = serve({
     fetch: app.fetch,
-    port: Number(PORT)
+    port: Number(PORT),
+    hostname: '0.0.0.0'
   }, (info) => {
-    console.log(`Server listening on port ${info.port}`);
+    console.log(`Server listening on ${info.address}:${info.port}`);
     console.log(`Web CLI: http://localhost:${info.port}`);
     console.log(`GitHub OAuth: http://localhost:${info.port}/auth/github`);
     console.log(`API: POST http://localhost:${info.port}/query`);

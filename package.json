@@ -23,7 +23,7 @@
     "@hono/node-ws": "^1.0.0",
     "@hono/oauth-providers": "^0.6.0",
     "hono": "^4.0.0",
-    "jose": "^5.0.0",
+    "jose": "^6.1.0",
     "tsx": "^4.0.0"
   },
   "devDependencies": {

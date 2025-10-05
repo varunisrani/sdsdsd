@@ -1,16 +1,9 @@
 #!/bin/bash
 # Claude Code Hook: Check setup state and inject context
-# Runs until setup is complete, then creates marker file to stop running
 
-MARKER_FILE=".claude/.setup-complete"
 SECURITY_AUDIT_MARKER=".claude/.security-audit-done"
 SETUP_STATE=""
 NEEDS_SETUP=false
-
-# Exit early if setup is already complete
-if [ -f "$MARKER_FILE" ]; then
-    exit 0
-fi
 
 # Check 0: Has security audit been run?
 if [ ! -f "$SECURITY_AUDIT_MARKER" ]; then
@@ -66,7 +59,7 @@ else
     fi
 fi
 
-# If setup is complete, create marker file and exit
+# If setup is complete, show success message
 if [ "$NEEDS_SETUP" = false ]; then
     echo ""
     echo "═══════════════════════════════════════════════════════════"
@@ -77,14 +70,8 @@ if [ "$NEEDS_SETUP" = false ]; then
     echo "Application is ready to use:"
     echo "  • Web CLI: http://localhost:8080"
     echo "  • REST API: POST http://localhost:8080/query"
-    echo ""
-    echo "This setup check will no longer run on subsequent prompts."
     echo "═══════════════════════════════════════════════════════════"
     echo ""
-
-    # Mark setup as complete
-    mkdir -p .claude
-    echo "Setup completed on $(date)" > "$MARKER_FILE"
     exit 0
 fi
 
@@ -102,8 +89,6 @@ if [ ! -f "$SECURITY_AUDIT_MARKER" ]; then
 fi
 echo "   1. If .env missing: Run ./setup-tokens.sh (in separate terminal)"
 echo "   2. If container not running: Run ./test.sh"
-echo ""
-echo "This message will continue to appear until setup is complete."
 echo "═══════════════════════════════════════════════════════════"
 echo ""
 

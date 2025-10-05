@@ -140,13 +140,12 @@ Once Claude confirms the application is running, open your browser to:
 
 This repository includes an intelligent Claude Code hook that guides you through setup:
 
-**Setup Status Hook** (`UserPromptSubmit`) - Runs until setup complete:
+**Setup Status Hook** (`UserPromptSubmit`):
 - Reminds you to run the security audit (optional but recommended)
 - Checks if `.env` is configured
 - Verifies Docker image is built
 - Confirms container is running
 - Shows clear status and next steps
-- Creates `.claude/.setup-complete` marker when done
 
 Claude automatically sees your setup state and guides you - no manual checks needed!
 

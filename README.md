@@ -173,9 +173,9 @@ COPY IT NOW - you can't get it again!
 
 Go to [GitHub Settings > Developer settings > GitHub Apps](https://github.com/settings/apps/new) and create a new GitHub App:
 
-> 💡 **Note**: Use the fixed name `claude-agent-sdk-container` to match the automated setup. This allows you to reuse the same app across multiple machines/deployments. Just add additional callback URLs for each deployment (e.g., `http://localhost:8081/auth/github`, `http://your-domain.com/auth/github`, etc.) in your GitHub App settings.
+> 💡 **Note**: Use a unique timestamped name like `claude-agent-sdk-202510052056` to avoid conflicts. If you want to reuse the same app across multiple machines/deployments, you can reuse the same GitHub App credentials by using the same Client ID and Client Secret in your `.env` file.
 
-- **GitHub App name**: `claude-agent-sdk-container` (use this exact name)
+- **GitHub App name**: `claude-agent-sdk-YYYYMMDDHHMM` (use a unique timestamped name)
 - **Homepage URL**: `http://localhost:8080`
 - **Callback URL**: `http://localhost:8080/auth/github`
 - **Request user authorization (OAuth) during installation**: ✅ **Check this box**

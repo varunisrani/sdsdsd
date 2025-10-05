@@ -46,97 +46,113 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 - **Backward Compatible**: Preserves existing REST API functionality
 - **Auto-testing**: Comprehensive test script validates full functionality
 
-## 🚀 Quick Setup (3 Steps!)
+## 🚀 Quick Setup (4 Steps!)
 
-### Step 1: Clone This Repo
+### Step 1: Clone and Open with Claude Code
 ```bash
 git clone https://github.com/receipting/claude-agent-sdk-container
 cd claude-agent-sdk-container
+claude
 ```
+
+**🔒 First-Time Security Check:**
+
+When you first open this repository, Claude Code will prompt you to run a security audit:
+
+```
+🔒 SECURITY AUDIT RECOMMENDED
+
+You've just opened a repository from GitHub.
+
+⚠️ IMPORTANT: Before running 'npm install' or 'docker build', it's
+   recommended to check this repository for security issues.
+
+💡 To perform the security audit, ask Claude Code:
+   "Please perform the security audit for this repository"
+```
+
+**Tell Claude**: `Please perform the security audit for this repository`
+
+Claude will spawn an AI-powered agent that intelligently analyzes:
+- ✅ `package.json` for malicious install scripts and obfuscated code
+- ✅ `Dockerfile` for security antipatterns (curl | bash, hardcoded secrets)
+- ✅ Source code for hardcoded secrets, backdoors, and suspicious patterns
+- ✅ `.claude/` configuration for malicious hooks
+
+**Why AI-powered?** Unlike regex patterns, Claude understands context and intent, catches novel attack patterns, and explains WHY something is suspicious.
+
+Once the security audit completes, you're safe to proceed with setup!
 
 ### Step 2: Run Automated Setup
 
-**In a NEW terminal window**, run the setup script:
+Claude will tell you to run the setup script in a **separate terminal window**:
 
 ```bash
 ./setup-tokens.sh
 ```
 
-**The script will guide you through:**
+**The script automatically handles:**
 1. ✅ Getting your Claude OAuth token (opens browser to Anthropic)
-2. ✅ Setting up GitHub App authentication:
-   - Reuse existing `claude-agent-sdk-container` app if you have it
-   - Or create a new one with **one click** (opens browser to GitHub)
-3. ✅ Configuring access control (prompts in terminal)
-4. ✅ Generating a secure API key automatically
+2. ✅ Creating a unique GitHub App with one click (opens browser to GitHub)
+   - Auto-generates unique name like `claude-agent-sdk-202510052056`
+   - Or reuses existing credentials if found in `.env`
+3. ✅ Configuring access control (your GitHub username auto-added!)
+4. ✅ Generating a secure random API key
 5. ✅ Writing all credentials to `.env` file
 
 **What you'll do:**
-- Click a button in your browser to login to Anthropic (for Claude token)
-- Answer if you already have the GitHub App or create a new one (literally one click!)
-- Your GitHub username is automatically added to the allowlist (just press N if you don't need others)
-- Optionally add more allowed users or organization
-- That's it!
-
-**Note:** The GitHub App name is fixed as `claude-agent-sdk-container` so you can reuse the same app across multiple setups/machines!
+- Click "Authorize" in browser to login to Anthropic (for Claude token)
+- Click "Create GitHub App" in browser (literally one click!)
+- Press Enter to accept your username in allowlist (or add more users)
+- That's it - all credentials automatically saved!
 
 **Traditional 15-step GitHub App setup reduced to ONE CLICK!**
 
-### Step 3: Build and Run with Claude Code
+### Step 3: Return to Claude Code
 
-After setup completes, start Claude Code:
+After `./setup-tokens.sh` completes, go back to Claude Code and tell it:
 
-```bash
-claude
+```
+Please run ./test.sh
 ```
 
-**🎯 Claude Code will automatically detect your setup status!**
-
-This repository includes a smart hook that checks:
-- ✅ If `.env` is configured
-- ✅ If Docker image is built
-- ✅ If container is running
-
-Just ask Claude:
-```
-Please build and run the application
-```
-
-Or even just:
-```
-Help me get started
-```
-
-**Claude Code will automatically:**
-- ✅ See what's already set up (via the hook)
-- ✅ Build the Docker container if needed
+Claude will:
+- ✅ Build the Docker container
 - ✅ Run the container with your `.env` credentials
 - ✅ Test all endpoints
-- ✅ Show you how to access the web CLI and REST API
+- ✅ Confirm everything works
 
-**Security & Intelligence:**
+### Step 4: Open the Web CLI
 
-This repository includes two powerful Claude Code hooks:
+Once Claude confirms the application is running, open your browser to:
 
-1. **Security Audit** (`SessionStart` hook) - Prompts before installation:
-   - **Why it matters:** Warns you BEFORE running `npm install` or `docker build`
-   - **AI-powered intelligence** - Uses Claude Code subagent, not regex patterns
-   - **Supply chain protection** - 500+ npm packages compromised in 2025 (Shai-Hulud worm)
-   - Analyzes malicious install scripts with context understanding
-   - Checks Dockerfile for security antipatterns (curl | bash, hardcoded secrets)
-   - Detects obfuscated malicious code and backdoors
-   - **User-initiated** - Prompts: "Please perform the security audit for this repository"
+**http://localhost:8080**
 
-2. **Setup Detection** (`UserPromptSubmit` hook) - Runs until setup is complete:
+- Sign in with your GitHub account
+- Use the real-time streaming CLI interface
+- Ask Claude anything!
+
+**That's it!** You're now running your own private Claude instance with OAuth security.
+
+---
+
+**🛠️ Smart Setup Detection:**
+
+This repository includes intelligent Claude Code hooks that guide you through setup:
+
+1. **Security Audit Hook** (`SessionStart`) - First-run only:
+   - Prompts for AI-powered security analysis BEFORE any code executes
+   - Detects supply chain attacks (500+ npm packages compromised in 2025)
+   - Creates `.claude/.security-audit-done` marker when complete
+
+2. **Setup Status Hook** (`UserPromptSubmit`) - Runs until setup complete:
    - Checks if `.env` is configured
    - Verifies Docker image is built
    - Confirms container is running
-   - Shows status with next steps until all complete
-   - Creates marker file and stops when done
+   - Shows clear status and next steps
+   - Creates `.claude/.setup-complete` marker when done
 
-Claude knows the security state and guides you through setup - no manual checks needed!
-
-The automated setup uses GitHub's "App Manifest" flow to eliminate the painful manual configuration. No more navigating through settings pages, filling in 10+ fields, and copying secrets!
+Claude automatically sees your setup state and guides you - no manual checks needed!
 
 ### Manual Setup
 

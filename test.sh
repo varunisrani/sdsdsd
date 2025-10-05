@@ -32,9 +32,11 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# Get container name from directory
-CONTAINER_NAME="claude-code-$(basename "$(pwd)")"
-IMAGE_NAME="claude-code-$(basename "$(pwd)")"
+# Get container name from directory (sanitize: lowercase, alphanumeric only, single dashes)
+DIR_NAME=$(basename "$(pwd)")
+DIR_NAME_SAFE=$(echo "$DIR_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/-\+/-/g; s/^-//; s/-$//')
+CONTAINER_NAME="claude-code-${DIR_NAME_SAFE}"
+IMAGE_NAME="claude-code-${DIR_NAME_SAFE}"
 
 if ! docker images | grep -q "$IMAGE_NAME"; then
     echo "Building Docker image..."

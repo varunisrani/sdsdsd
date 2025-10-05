@@ -33,6 +33,12 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 - **Graceful Shutdown**: Proper signal handling for container orchestration
 - **Comprehensive Logging**: Detailed startup and access control logging
 
+### 🔒 **Security First**
+- **Automated Security Audit**: First-run scan for malicious code and vulnerabilities
+- **Supply Chain Protection**: Detects compromised npm packages and Dockerfile attacks
+- **Secret Detection**: Prevents hardcoded credentials in containers
+- **Best Practices**: Follows security patterns (non-root user, minimal attack surface)
+
 ### 🛠️ **Developer Experience**
 - **Real-time Streaming**: Character-by-character CLI response streaming
 - **Multiple Models**: Support for Claude Sonnet 4.5 and Opus 4.1
@@ -40,9 +46,7 @@ Since you're here, we expect you already have Claude Code installed and are lovi
 - **Backward Compatible**: Preserves existing REST API functionality
 - **Auto-testing**: Comprehensive test script validates full functionality
 
-**🚨 STOP! Only FIVE manual steps required:**
-
-## 📋 Five-Step Setup (DO THIS YOURSELF)
+## 🚀 Quick Setup (3 Steps!)
 
 ### Step 1: Clone This Repo
 ```bash
@@ -50,25 +54,112 @@ git clone https://github.com/receipting/claude-agent-sdk-container
 cd claude-agent-sdk-container
 ```
 
-### Step 2: Get Your Claude OAuth Token
+### Step 2: Run Automated Setup
+
+**In a NEW terminal window**, run the setup script:
+
+```bash
+./setup-tokens.sh
+```
+
+**The script will guide you through:**
+1. ✅ Getting your Claude OAuth token (opens browser to Anthropic)
+2. ✅ Setting up GitHub App authentication:
+   - Reuse existing `claude-agent-sdk-container` app if you have it
+   - Or create a new one with **one click** (opens browser to GitHub)
+3. ✅ Configuring access control (prompts in terminal)
+4. ✅ Generating a secure API key automatically
+5. ✅ Writing all credentials to `.env` file
+
+**What you'll do:**
+- Click a button in your browser to login to Anthropic (for Claude token)
+- Answer if you already have the GitHub App or create a new one (literally one click!)
+- Your GitHub username is automatically added to the allowlist (just press N if you don't need others)
+- Optionally add more allowed users or organization
+- That's it!
+
+**Note:** The GitHub App name is fixed as `claude-agent-sdk-container` so you can reuse the same app across multiple setups/machines!
+
+**Traditional 15-step GitHub App setup reduced to ONE CLICK!**
+
+### Step 3: Build and Run with Claude Code
+
+After setup completes, start Claude Code:
+
+```bash
+claude
+```
+
+**🎯 Claude Code will automatically detect your setup status!**
+
+This repository includes a smart hook that checks:
+- ✅ If `.env` is configured
+- ✅ If Docker image is built
+- ✅ If container is running
+
+Just ask Claude:
+```
+Please build and run the application
+```
+
+Or even just:
+```
+Help me get started
+```
+
+**Claude Code will automatically:**
+- ✅ See what's already set up (via the hook)
+- ✅ Build the Docker container if needed
+- ✅ Run the container with your `.env` credentials
+- ✅ Test all endpoints
+- ✅ Show you how to access the web CLI and REST API
+
+**Security & Intelligence:**
+
+This repository includes two powerful Claude Code hooks:
+
+1. **Security Audit** (`SessionStart` hook) - Prompts before installation:
+   - **Why it matters:** Warns you BEFORE running `npm install` or `docker build`
+   - **AI-powered intelligence** - Uses Claude Code subagent, not regex patterns
+   - **Supply chain protection** - 500+ npm packages compromised in 2025 (Shai-Hulud worm)
+   - Analyzes malicious install scripts with context understanding
+   - Checks Dockerfile for security antipatterns (curl | bash, hardcoded secrets)
+   - Detects obfuscated malicious code and backdoors
+   - **User-initiated** - Prompts: "Please perform the security audit for this repository"
+
+2. **Setup Detection** (`UserPromptSubmit` hook) - Runs until setup is complete:
+   - Checks if `.env` is configured
+   - Verifies Docker image is built
+   - Confirms container is running
+   - Shows status with next steps until all complete
+   - Creates marker file and stops when done
+
+Claude knows the security state and guides you through setup - no manual checks needed!
+
+The automated setup uses GitHub's "App Manifest" flow to eliminate the painful manual configuration. No more navigating through settings pages, filling in 10+ fields, and copying secrets!
+
+### Manual Setup
+
+<details>
+<summary>Click here if you prefer to set things up manually (or if automated setup fails)</summary>
+
+### Manual Step 1: Get Your Claude OAuth Token
 
 ```bash
 claude setup-token
 ```
 
-This opens a browser to login to Anthropic.
-
-After login, the token appears in your terminal.
+This opens a browser to login to Anthropic. After login, the token appears in your terminal.
 
 COPY IT NOW - you can't get it again!
 
-### Step 3: Create GitHub App
+### Manual Step 2: Create GitHub App
 
 Go to [GitHub Settings > Developer settings > GitHub Apps](https://github.com/settings/apps/new) and create a new GitHub App:
 
-> 💡 **Note**: You can reuse the same GitHub App across multiple claude-agent-sdk-container deployments. Just add additional callback URLs for each deployment (e.g., `http://localhost:8081/auth/github`, `http://your-domain.com/auth/github`, etc.) in your GitHub App settings.
+> 💡 **Note**: Use the fixed name `claude-agent-sdk-container` to match the automated setup. This allows you to reuse the same app across multiple machines/deployments. Just add additional callback URLs for each deployment (e.g., `http://localhost:8081/auth/github`, `http://your-domain.com/auth/github`, etc.) in your GitHub App settings.
 
-- **GitHub App name**: `Claude CLI Container` (or your preferred name)
+- **GitHub App name**: `claude-agent-sdk-container` (use this exact name)
 - **Homepage URL**: `http://localhost:8080`
 - **Callback URL**: `http://localhost:8080/auth/github`
 - **Request user authorization (OAuth) during installation**: ✅ **Check this box**
@@ -79,7 +170,9 @@ Go to [GitHub Settings > Developer settings > GitHub Apps](https://github.com/se
 
 After creating the app, copy the **Client ID** and generate a **Client Secret** for the next step.
 
-### Step 4: Create .env File in This Directory
+**If the name is already taken:** You (or your organization) already have this app! Just use the existing app's credentials instead of creating a new one. Find it at [GitHub Settings > Apps](https://github.com/settings/apps).
+
+### Manual Step 3: Create .env File in This Directory
 
 ```bash
 cat > .env << 'EOF'
@@ -111,36 +204,39 @@ EOF
 - You must set either `ALLOWED_GITHUB_USERS` or `ALLOWED_GITHUB_ORG` (or both)
 - This prevents unauthorized access to your Claude instance
 
-### Step 5: Start Claude Code
+### Manual Step 4: Run the app
 
-Start Claude Code FROM INSIDE this directory
+Tell Claude Code:
+```
+Please build the Docker container, run it, and verify it's working
+```
 
+Or run manually:
 ```bash
-claude
+./test.sh
 ```
 
-## 🤖 Now Let Claude Code Do Everything Else!
+**Note:** All scripts automatically sanitize directory names (lowercase, alphanumeric only) for Docker compatibility.
 
-**That's it! Now just tell Claude Code (which you already have running):**
+</details>
 
-Claude Code will handle all the Docker commands, testing, and setup for you.
+## 🎯 What You Get After Setup
 
-### Example Claude Code Prompt:
-```
-I've created the .env file with my tokens.
-Please build the Docker container, run it, and verify it's working by testing the API endpoints.
-```
+Once setup completes, you'll have:
 
-### What Claude Code Will Do:
-- ✅ Build the Docker container
-- ✅ Run the container with your .env file
-- ✅ Test both health and query endpoints
-- ✅ Show you working curl commands to use
-- ✅ Demonstrate the multi-agent system in action
-- ✅ Fix any issues that come up
+**🌐 Web CLI Interface** at `http://localhost:8080`
+- Sign in with your GitHub account (one-click OAuth)
+- Real-time streaming terminal interface
+- Full conversational context maintained across messages
 
-### Try the Multi-Agent System:
-Once running, test the built-in multi-agent collaboration:
+**🔧 REST API** at `http://localhost:8080/query`
+- Secure API key authentication
+- Built-in multi-agent collaboration system
+- Easy integration with any application
+
+### Try the Multi-Agent System
+
+Test the built-in Canadian 🍁 and Australian 🇦🇺 agents:
 ```bash
 curl -X POST http://localhost:8080/query \
   -H "Content-Type: application/json" \
@@ -148,7 +244,7 @@ curl -X POST http://localhost:8080/query \
   -d '{"prompt": "Help me plan a vacation"}'
 ```
 
-You'll see the Canadian 🍁 and Australian 🇦🇺 agents discuss your request and provide their unique perspectives!
+You'll see both agents discuss your request and provide their unique perspectives!
 
 ---
 

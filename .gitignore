@@ -141,6 +141,12 @@ wrangler.json
 # Claude SDK / Authentication
 .claude/*
 !.claude/settings.json
+!.claude/hooks/
+!.claude/agents/
+.claude/.security-audit-done
+.claude/.setup-complete
+.claude/settings.local.json
+.claude-persist/
 .credentials.json
 .claude.json
 claude.config.json

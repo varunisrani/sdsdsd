@@ -28,9 +28,11 @@ CURRENT_VERSION=$(grep '"@anthropic-ai/claude-agent-sdk"' package.json | grep -o
 echo -e "Current version: ${BLUE}$CURRENT_VERSION${NC}"
 echo ""
 
-# Get container name from directory
-CONTAINER_NAME="claude-code-$(basename "$(pwd)")"
-IMAGE_NAME="claude-code-$(basename "$(pwd)")"
+# Get container name from directory (sanitize: lowercase, alphanumeric only, single dashes)
+DIR_NAME=$(basename "$(pwd)")
+DIR_NAME_SAFE=$(echo "$DIR_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/-\+/-/g; s/^-//; s/-$//')
+CONTAINER_NAME="claude-code-${DIR_NAME_SAFE}"
+IMAGE_NAME="claude-code-${DIR_NAME_SAFE}"
 
 # Check if container exists
 CONTAINER_EXISTS=$(docker ps -a --format "table {{.Names}}" | grep -c "$CONTAINER_NAME" || true)

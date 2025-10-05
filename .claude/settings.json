@@ -31,5 +31,27 @@
       "Bash(sudo:*)"
     ]
   },
-  "disableAllHooks": true
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/security-audit.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/check-setup.sh"
+          }
+        ]
+      }
+    ]
+  }
 }

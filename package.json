@@ -13,8 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
-    "docker:build": "docker build -t claude-code-$(basename \"$(pwd)\") .",
-    "docker:run": "docker run -d -p 8080:8080 --env-file .env --name claude-code-$(basename \"$(pwd)\") claude-code-$(basename \"$(pwd)\")",
+    "docker:build": "docker build -t \"claude-code-$(basename \"$(pwd)\" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/-\\+/-/g; s/^-//; s/-$//')\" .",
+    "docker:run": "DIR=$(basename \"$(pwd)\" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/-\\+/-/g; s/^-//; s/-$//'); docker run -d -p 8080:8080 --env-file .env --name \"claude-code-$DIR\" \"claude-code-$DIR\"",
     "docker:test": "./test.sh"
   },
   "dependencies": {

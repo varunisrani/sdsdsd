@@ -1,8 +1,8 @@
 # Claude Agent SDK Container
 
-**Deploy Claude Agent SDK to your favorite cloud provider with built-in multi-agent collaboration!**
+**Deploy Claude Agent SDK to your favorite cloud provider so that it runs using your Anthropic Max Plan tokens rather than API tokens!**
 
-This repository containerizes the Claude Agent SDK, allowing you to run it with your Anthropic subscription on AWS, Google Cloud, Azure, or any cloud platform that supports Docker. Once deployed, you can interact with Claude through a REST API from any application or service!
+This repository containerizes the Claude Agent SDK, allowing you to run it with your Anthropic subscription on AWS, Google Cloud, Azure, or any cloud platform that supports Docker. Once deployed, you can interact with Claude through a web-based CLI or a REST API from any application or service!
 
 **🤖 Multi-Agent Feature:** The `/query` endpoint includes a built-in example of multi-agent collaboration where a Canadian 🍁 and Australian 🇦🇺 agent discuss user requests and provide their unique perspectives. This demonstrates how to use the Claude Agent SDK's Task tool for subagent delegation. [See examples below](#examples) or customize the agents in `server.ts`.
 

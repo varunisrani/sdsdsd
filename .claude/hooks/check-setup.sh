@@ -3,12 +3,20 @@
 # Runs until setup is complete, then creates marker file to stop running
 
 MARKER_FILE=".claude/.setup-complete"
+SECURITY_AUDIT_MARKER=".claude/.security-audit-done"
 SETUP_STATE=""
 NEEDS_SETUP=false
 
 # Exit early if setup is already complete
 if [ -f "$MARKER_FILE" ]; then
     exit 0
+fi
+
+# Check 0: Has security audit been run?
+if [ ! -f "$SECURITY_AUDIT_MARKER" ]; then
+    SETUP_STATE="${SETUP_STATE}🔒 Security Status: Audit NOT performed\n"
+    SETUP_STATE="${SETUP_STATE}   → Recommended: Ask Claude to run the security audit\n"
+    SETUP_STATE="${SETUP_STATE}   → AI-powered analysis detects malicious code, backdoors, and supply chain attacks\n\n"
 fi
 
 # Check 1: Is .env configured?
@@ -89,6 +97,9 @@ echo ""
 echo -e "$SETUP_STATE"
 
 echo "💡 Quick Start:"
+if [ ! -f "$SECURITY_AUDIT_MARKER" ]; then
+    echo "   0. Recommended: Ask Claude to perform security audit (protects against malicious code)"
+fi
 echo "   1. If .env missing: Run ./setup-tokens.sh (in separate terminal)"
 echo "   2. If container not running: Run ./test.sh"
 echo ""

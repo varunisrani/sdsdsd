@@ -138,19 +138,15 @@ Once Claude confirms the application is running, open your browser to:
 
 **🛠️ Smart Setup Detection:**
 
-This repository includes intelligent Claude Code hooks that guide you through setup:
+This repository includes an intelligent Claude Code hook that guides you through setup:
 
-1. **Security Audit Hook** (`SessionStart`) - First-run only:
-   - Prompts for AI-powered security analysis BEFORE any code executes
-   - Detects supply chain attacks (500+ npm packages compromised in 2025)
-   - Creates `.claude/.security-audit-done` marker when complete
-
-2. **Setup Status Hook** (`UserPromptSubmit`) - Runs until setup complete:
-   - Checks if `.env` is configured
-   - Verifies Docker image is built
-   - Confirms container is running
-   - Shows clear status and next steps
-   - Creates `.claude/.setup-complete` marker when done
+**Setup Status Hook** (`UserPromptSubmit`) - Runs until setup complete:
+- Reminds you to run the security audit (optional but recommended)
+- Checks if `.env` is configured
+- Verifies Docker image is built
+- Confirms container is running
+- Shows clear status and next steps
+- Creates `.claude/.setup-complete` marker when done
 
 Claude automatically sees your setup state and guides you - no manual checks needed!
 

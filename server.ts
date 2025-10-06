@@ -26,7 +26,7 @@ const allowedGithubOrg = process.env.ALLOWED_GITHUB_ORG?.trim().toLowerCase() ||
 
 // Check if running in Docker (skip check in test mode)
 if (process.env.NODE_ENV !== 'test') {
-  const isDocker = fs.existsSync('/.dockerenv') || process.env.container === 'docker' || process.env.RENDER === 'true';
+  const isDocker = fs.existsSync('/.dockerenv') || process.env.container === 'docker' || process.env.RENDER === 'true' || process.env.PORT === '10000';
 
   if (!isDocker && process.env.ALLOW_LOCAL !== 'true') {
     console.error("\n❌ ERROR: This application must be run in Docker!");
@@ -128,9 +128,10 @@ const sessionIds = new Map<any, string>();
 
 // Startup logging (skip in test mode)
 if (process.env.NODE_ENV !== 'test') {
-  const isDocker = fs.existsSync('/.dockerenv') || process.env.container === 'docker';
-  console.log("Claude Agent SDK Container starting...");
+  const isDocker = fs.existsSync('/.dockerenv') || process.env.container === 'docker' || process.env.RENDER === 'true';
+  console.log("GLM-4.6 Agent SDK Container starting...");
   console.log("Environment:", isDocker ? "Docker" : "Local");
+  console.log("Platform:", process.env.RENDER ? "Render" : process.env.PORT === '10000' ? "Cloud" : "Unknown");
   console.log("GLM-4.6 token:", !!(process.env.ANTHROPIC_AUTH_TOKEN || process.env.CLAUDE_CODE_OAUTH_TOKEN) ? "✓" : "✗");
   console.log("API protection:", !!process.env.CLAUDE_AGENT_SDK_CONTAINER_API_KEY ? "✓" : "✗");
   console.log("GitHub OAuth:", !!process.env.GITHUB_CLIENT_ID && !!process.env.GITHUB_CLIENT_SECRET ? "✓" : "✗");

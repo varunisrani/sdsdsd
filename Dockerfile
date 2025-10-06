@@ -37,9 +37,13 @@ COPY server.ts package.json tsconfig.json ./
 # Copy Claude settings file
 COPY .claude/settings.json ./claude-settings.json
 
-# Set up permissions and settings
+# Copy fixed entrypoint script
+COPY docker-entrypoint-fixed.sh ./
+
+# Set up permissions and settings (as root)
 RUN mkdir -p /home/appuser/.claude && \
     cp ./claude-settings.json /home/appuser/.claude/settings.json && \
+    chmod +x docker-entrypoint-fixed.sh && \
     chown -R appuser:appuser /home/appuser /app
 
 # Switch to non-root user
@@ -50,10 +54,6 @@ ENV HOME=/home/appuser
 VOLUME ["/home/appuser/.claude"]
 
 EXPOSE 8080
-
-# Copy fixed entrypoint script
-COPY docker-entrypoint-fixed.sh ./
-RUN chmod +x docker-entrypoint-fixed.sh
 
 # Use the fixed entrypoint
 ENTRYPOINT ["/sbin/tini", "--"]

@@ -26,7 +26,7 @@ const allowedGithubOrg = process.env.ALLOWED_GITHUB_ORG?.trim().toLowerCase() ||
 
 // Check if running in Docker (skip check in test mode)
 if (process.env.NODE_ENV !== 'test') {
-  const isDocker = fs.existsSync('/.dockerenv') || process.env.container === 'docker';
+  const isDocker = fs.existsSync('/.dockerenv') || process.env.container === 'docker' || process.env.RENDER === 'true';
 
   if (!isDocker && process.env.ALLOW_LOCAL !== 'true') {
     console.error("\n❌ ERROR: This application must be run in Docker!");

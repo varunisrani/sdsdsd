@@ -57,3 +57,6 @@ CMD ["sh", "-c", "echo 'Starting GLM-4.6 container...' && exec tsx server.ts"]
 
 # Render.com needs port 10000
 ENV PORT=10000
+
+# Set RENDER environment variable for deployment detection
+ENV RENDER=true

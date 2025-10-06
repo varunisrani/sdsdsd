@@ -139,6 +139,20 @@ if (process.env.NODE_ENV !== 'test') {
   if (allowedGithubOrg) console.log("GitHub org restriction:", allowedGithubOrg);
 }
 
+// Simple debug endpoint - always public
+app.get("/debug", (c) => {
+  return c.json({
+    message: "Debug endpoint working!",
+    timestamp: new Date().toISOString(),
+    env: {
+      ANTHROPIC_AUTH_TOKEN: !!process.env.ANTHROPIC_AUTH_TOKEN,
+      CLAUDE_AGENT_SDK_CONTAINER_API_KEY: !!process.env.CLAUDE_AGENT_SDK_CONTAINER_API_KEY,
+      RENDER: process.env.RENDER,
+      PORT: process.env.PORT
+    }
+  });
+});
+
 // Health check endpoint - public access for monitoring
 app.get("/health", (c) => {
   const hasToken = !!(process.env.ANTHROPIC_AUTH_TOKEN || process.env.CLAUDE_CODE_OAUTH_TOKEN);

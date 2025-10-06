@@ -53,10 +53,14 @@ EXPOSE 8080
 
 # Direct command instead of entrypoint script
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["sh", "-c", "echo 'Starting GLM-4.6 container...' && exec tsx server.ts"]
+CMD ["sh", "-c", "echo 'Starting GLM-4.6 container...' && export ANTHROPIC_API_KEY=\"$ANTHROPIC_AUTH_TOKEN\" && export ANTHROPIC_BASE_URL=\"$ANTHROPIC_BASE_URL\" && export CLAUDE_CODE_OAUTH_TOKEN=\"$ANTHROPIC_AUTH_TOKEN\" && exec tsx server.ts"]
 
 # Render.com needs port 10000
 ENV PORT=10000
 
 # Set RENDER environment variable for deployment detection
 ENV RENDER=true
+
+# Set GLM-4.6 environment variables for Claude SDK compatibility
+ENV ANTHROPIC_API_KEY=""
+ENV ANTHROPIC_BASE_URL=""

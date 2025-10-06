@@ -7,6 +7,7 @@ echo "Environment variables:"
 echo "ANTHROPIC_AUTH_TOKEN present: $(if [ -n "$ANTHROPIC_AUTH_TOKEN" ]; then echo "✓"; else echo "✗"; fi)"
 echo "ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-'not set'}"
 echo "CLAUDE_CODE_OAUTH_TOKEN present: $(if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then echo "✓"; else echo "✗"; fi)"
+echo "CLAUDE_AGENT_SDK_CONTAINER_API_KEY present: $(if [ -n "$CLAUDE_AGENT_SDK_CONTAINER_API_KEY" ]; then echo "✓"; else echo "✗"; fi)"
 
 # Setup Claude SDK environment for GLM-4.6 compatibility
 if [ -n "$ANTHROPIC_AUTH_TOKEN" ]; then

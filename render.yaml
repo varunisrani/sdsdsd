@@ -1,0 +1,46 @@
+services:
+  # Your GLM-4.6 Web Service
+  - type: web
+    name: glm-agent-sdk
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+
+    # Environment Variables (Render will use these from your dashboard)
+    envVars:
+      - key: ANTHROPIC_BASE_URL
+        value: https://api.z.ai/api/anthropic
+      - key: ANTHROPIC_AUTH_TOKEN
+        sync: false  # You'll set this in Render dashboard
+      - key: CLAUDE_AGENT_SDK_CONTAINER_API_KEY
+        generateValue: true
+      - key: GITHUB_CLIENT_ID
+        sync: false  # You'll set this in Render dashboard
+      - key: GITHUB_CLIENT_SECRET
+        sync: false  # You'll set this in Render dashboard
+      - key: ALLOWED_GITHUB_USERS
+        value: your-github-username
+      - key: GLM_MODEL
+        value: GLM-4.6
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000  # Render uses port 10000 by default
+
+    # Port configuration
+    ports:
+      - port: 8080
+        protocol: TCP
+
+    # Health check
+    healthCheck:
+      http:
+        path: /health
+        port: 8080
+        interval: 10s
+        timeout: 10s
+        gracePeriod: 30s
+        checkProtocol: HTTP

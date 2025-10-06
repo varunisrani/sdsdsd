@@ -33,7 +33,6 @@ COPY --from=web-builder /web/dist ./web/dist
 
 # Copy server files
 COPY server.ts package.json tsconfig.json ./
-COPY scripts/docker-entrypoint.sh ./
 
 # Copy Claude settings file
 COPY .claude/settings.json ./claude-settings.json
@@ -41,8 +40,7 @@ COPY .claude/settings.json ./claude-settings.json
 # Set up permissions and settings
 RUN mkdir -p /home/appuser/.claude && \
     cp ./claude-settings.json /home/appuser/.claude/settings.json && \
-    chown -R appuser:appuser /home/appuser /app && \
-    chmod +x docker-entrypoint.sh
+    chown -R appuser:appuser /home/appuser /app
 
 # Switch to non-root user
 USER appuser
@@ -53,5 +51,9 @@ VOLUME ["/home/appuser/.claude"]
 
 EXPOSE 8080
 
+# Direct command instead of entrypoint script
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["./docker-entrypoint.sh"]
+CMD ["sh", "-c", "echo 'Starting GLM-4.6 container...' && exec tsx server.ts"]
+
+# Render.com needs port 10000
+ENV PORT=10000

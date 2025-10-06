@@ -131,7 +131,7 @@ if (process.env.NODE_ENV !== 'test') {
   const isDocker = fs.existsSync('/.dockerenv') || process.env.container === 'docker';
   console.log("Claude Agent SDK Container starting...");
   console.log("Environment:", isDocker ? "Docker" : "Local");
-  console.log("Claude token:", !!process.env.CLAUDE_CODE_OAUTH_TOKEN ? "✓" : "✗");
+  console.log("GLM-4.6 token:", !!(process.env.ANTHROPIC_AUTH_TOKEN || process.env.CLAUDE_CODE_OAUTH_TOKEN) ? "✓" : "✗");
   console.log("API protection:", !!process.env.CLAUDE_AGENT_SDK_CONTAINER_API_KEY ? "✓" : "✗");
   console.log("GitHub OAuth:", !!process.env.GITHUB_CLIENT_ID && !!process.env.GITHUB_CLIENT_SECRET ? "✓" : "✗");
   if (allowedGithubUsers.length > 0) console.log("GitHub users allowlist:", allowedGithubUsers.length, "users");
@@ -140,13 +140,15 @@ if (process.env.NODE_ENV !== 'test') {
 
 // Health check endpoint
 app.get("/health", (c) => {
-  const hasToken = !!process.env.CLAUDE_CODE_OAUTH_TOKEN;
+  const hasToken = !!(process.env.ANTHROPIC_AUTH_TOKEN || process.env.CLAUDE_CODE_OAUTH_TOKEN);
   const sdkLoaded = typeof query === "function";
+  const provider = process.env.ANTHROPIC_AUTH_TOKEN ? "GLM-4.6" : process.env.CLAUDE_CODE_OAUTH_TOKEN ? "Claude" : "None";
 
   return c.json({
     status: hasToken && sdkLoaded ? "healthy" : "unhealthy",
     hasToken,
     sdkLoaded,
+    provider,
     message: "Claude Agent SDK API with CLI",
     timestamp: new Date().toISOString(),
   });
@@ -182,8 +184,8 @@ app.post("/query", async (c) => {
       return c.json({ error: 'Prompt too long. Maximum 100000 characters' }, 400);
     }
 
-    if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
-      return c.json({ error: "CLAUDE_CODE_OAUTH_TOKEN not configured" }, 401);
+    if (!process.env.ANTHROPIC_AUTH_TOKEN && !process.env.CLAUDE_CODE_OAUTH_TOKEN) {
+      return c.json({ error: "ANTHROPIC_AUTH_TOKEN or CLAUDE_CODE_OAUTH_TOKEN not configured" }, 401);
     }
 
     const messages = [];
@@ -191,21 +193,21 @@ app.post("/query", async (c) => {
 
     // Build options for REST API with multi-agent support
     const queryOptions: any = {
-      model: options.model || 'claude-sonnet-4-5',
+      model: options.model || process.env.GLM_MODEL || 'GLM-4.6',
       agents: {
         canadian_agent: {
           description: "Provides a friendly Canadian perspective on the user's request",
           prompt: `You are a cheerful Canadian assistant, eh! Speak with Canadian character using expressions like "eh", "sorry", "beauty", "bud".
 Be polite, friendly, optimistic, and inclusive. Give helpful advice with Canadian warmth and positivity.
 Keep your responses concise (2-3 sentences) and always make it clear you're the Canadian perspective.`,
-          model: 'sonnet' as const
+          model: process.env.GLM_MODEL || 'GLM-4.6'
         },
         australian_agent: {
           description: "Provides a laid-back Australian perspective on the user's request",
           prompt: `You are a relaxed Australian assistant, mate! Speak with Aussie character using expressions like "mate", "no worries", "she'll be right", "fair dinkum".
 Be casual, easy-going, practical, and down-to-earth. Give straightforward advice with Australian laid-back charm.
 Keep your responses concise (2-3 sentences) and always make it clear you're the Australian perspective.`,
-          model: 'sonnet' as const
+          model: process.env.GLM_MODEL || 'GLM-4.6'
         }
       }
     };
@@ -363,10 +365,10 @@ export const websocketHandler = (c: any) => ({
         return;
       }
 
-      if (!process.env.CLAUDE_CODE_OAUTH_TOKEN) {
+      if (!process.env.ANTHROPIC_AUTH_TOKEN && !process.env.CLAUDE_CODE_OAUTH_TOKEN) {
         ws.send(JSON.stringify({
           type: "error",
-          message: "CLAUDE_CODE_OAUTH_TOKEN not configured"
+          message: "ANTHROPIC_AUTH_TOKEN or CLAUDE_CODE_OAUTH_TOKEN not configured"
         }));
         return;
       }
@@ -377,7 +379,7 @@ export const websocketHandler = (c: any) => ({
 
       // Build query options
       const queryOptions: any = {
-        model: 'claude-sonnet-4-5',
+        model: process.env.GLM_MODEL || 'GLM-4.6',
         cwd: "/app",
         env: process.env,
       };

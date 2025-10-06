@@ -19,10 +19,19 @@ set -a
 source .env
 set +a
 
-# Check if tokens are set
-if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
-    echo "Error: CLAUDE_CODE_OAUTH_TOKEN not set in .env"
+# Check if tokens are set (GLM-4.6 or Claude)
+if [ -z "$ANTHROPIC_AUTH_TOKEN" ] && [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+    echo "Error: ANTHROPIC_AUTH_TOKEN or CLAUDE_CODE_OAUTH_TOKEN not set in .env"
     exit 1
+fi
+
+# Determine which AI provider is configured
+if [ -n "$ANTHROPIC_AUTH_TOKEN" ]; then
+    AI_PROVIDER="GLM-4.6"
+    echo "Using GLM-4.6 AI provider"
+else
+    AI_PROVIDER="Claude"
+    echo "Using Claude AI provider"
 fi
 
 echo "Environment loaded"
@@ -59,9 +68,10 @@ if [[ "$HEALTH_RESPONSE" == "FAILED" ]]; then
 fi
 
 if echo "$HEALTH_RESPONSE" | grep -q '"status":"healthy"'; then
-    echo "Health check passed"
+    echo "Health check passed - $AI_PROVIDER is responding"
 else
-    echo "Health check unhealthy - check CLAUDE_CODE_OAUTH_TOKEN"
+    echo "Health check unhealthy - check AI provider token"
+    echo "Provider: $AI_PROVIDER"
 fi
 
 echo "Testing query endpoint..."
@@ -87,5 +97,8 @@ else
 fi
 
 echo "All tests passed!"
+echo "🎉 $AI_PROVIDER container is running successfully!"
 echo "Web CLI: http://localhost:8080"
 echo "API: POST http://localhost:8080/query"
+echo ""
+echo "💡 Note: You're using $AI_PROVIDER as the AI provider"

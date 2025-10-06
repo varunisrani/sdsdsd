@@ -51,9 +51,13 @@ VOLUME ["/home/appuser/.claude"]
 
 EXPOSE 8080
 
-# Direct command instead of entrypoint script
+# Copy fixed entrypoint script
+COPY docker-entrypoint-fixed.sh ./
+RUN chmod +x docker-entrypoint-fixed.sh
+
+# Use the fixed entrypoint
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["sh", "-c", "echo 'Starting GLM-4.6 container...' && export ANTHROPIC_API_KEY=\"$ANTHROPIC_AUTH_TOKEN\" && export ANTHROPIC_BASE_URL=\"$ANTHROPIC_BASE_URL\" && export CLAUDE_CODE_OAUTH_TOKEN=\"$ANTHROPIC_AUTH_TOKEN\" && exec tsx server.ts"]
+CMD ["./docker-entrypoint-fixed.sh"]
 
 # Render.com needs port 10000
 ENV PORT=10000
